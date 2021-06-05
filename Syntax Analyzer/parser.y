@@ -18,7 +18,7 @@ extern int line_count;
 extern int error;
 int semantic_error = 0;
 
-int bucket = 7;
+int bucket = 30;
 int id = 1;
 
 SymbolTable symtab(bucket,id,NULL);
@@ -26,8 +26,6 @@ SymbolTable symtab(bucket,id,NULL);
 int return_status = 0;
 string return_type;
 string current_ret_type;
-
-//this is a comment to check if github is ok?
 
 void yyerror(char *s)
 {
@@ -94,6 +92,7 @@ string arguments_name;
 
 //factor
 string variable_name;
+string variable_identity;
 
 //statement
 string expression_statement_name;
@@ -136,7 +135,7 @@ void scopeParameters()
 		else
 		{
 			semantic_error++;
-			fprintf(errorout, "Semantic error found at line no %d: variable  %s already declared \n", line_count, parameters[i]->getName().c_str() );
+			fprintf(errorout, "Error at line %d: Multiple declaration of %s\n", line_count, parameters[i]->getName().c_str() );
 		}
 	}
 
@@ -206,18 +205,19 @@ input :
 	  ;*/
 start : program
 	  {
-		cout<< "At Line no: " <<line_count << " start : program " << endl << endl;
-		int count = code_list.size();
-		for (int i = 0; i < count; ++i)
-		{
-			cout << code_list[i]<<endl << endl;
-		}
+		cout<< "Line " <<line_count<<":"<< " start : program " << endl << endl;
+		// int count = code_list.size();
+		// for (int i = 0; i < count; ++i)
+		// {
+		// 	cout << code_list[i]<<endl << endl;
+		// }
+		symtab.PrintAllScope();
 	  }
 	  ;
 
 program : program unit
         {
-        	cout<< "At Line no: " <<line_count << " program : program unit " << endl << endl;
+        	cout<< "Line " <<line_count<<":"<< " program : program unit " << endl << endl;
         	unit_name = $2->getName();
         	code_list.push_back(unit_name);
 
@@ -231,7 +231,7 @@ program : program unit
 			unit_name = $1->getName();
 			code_list.push_back(unit_name);
 
-			cout<< "At Line no: " <<line_count << " program : unit " << endl << endl;
+			cout<< "Line " <<line_count<<":"<< " program : unit " << endl << endl;
 			cout<< unit_name << endl << endl;
 		}	
 	   ;
@@ -244,7 +244,7 @@ unit : var_declaration
 	 	s = new SymbolInfo(var_declaration_name, "unit");
 	 	$$ = s;
 
-	 	cout<< "At Line no: " <<line_count << " unit : var_declaration " << endl << endl;
+	 	cout<< "Line " <<line_count<<":"<< " unit : var_declaration " << endl << endl;
 	 	cout<< var_declaration_name << endl << endl;
 
 
@@ -259,7 +259,7 @@ unit : var_declaration
 	 	s = new SymbolInfo(func_declaration_name, "unit");
 	 	$$ = s;
 
-	 	cout<< "At Line no: " <<line_count << " unit : func_declaration " << endl << endl;
+	 	cout<< "Line " <<line_count<<":"<< " unit : func_declaration " << endl << endl;
 	 	cout<< func_declaration_name << endl << endl;
 
 	 }
@@ -272,15 +272,15 @@ unit : var_declaration
 	 	s = new SymbolInfo(func_definition_name, "unit");
 	 	$$ = s;
 
-	 	cout<< "At Line no: " <<line_count << " unit : func_definition " << endl << endl;
-	 	cout<< func_declaration_name << endl << endl;
+	 	cout<< "Line " <<line_count<<":"<< " unit : func_definition " << endl << endl;
+	 	cout<< func_definition_name<< endl << endl;
 	 }
 	 
      ;
 
 func_declaration : type_specifier ID LPAREN parameter_list RPAREN SEMICOLON
 				 {
-				 	cout<< "At Line no: " <<line_count << " func_declaration : type_specifier ID LPAREN  parameter_list RPAREN SEMICOLON " << endl << endl;
+				 	cout<< "Line " <<line_count<<":"<< " func_declaration : type_specifier ID LPAREN  parameter_list RPAREN SEMICOLON " << endl << endl;
 				 	
 				 	func_name = $2->getName();
 				 	func_type = $1->getType();
@@ -288,7 +288,7 @@ func_declaration : type_specifier ID LPAREN parameter_list RPAREN SEMICOLON
                  	if(symtab.insert(func_name,"ID"))  // not inserted before
                  	{
                  		
-                 		symtab.printLex();
+                 		//symtab.printLex();
                  		SymbolInfo *temp;
                  		temp = symtab.Lookup(func_name);
                  		temp->setRetType(func_type);
@@ -305,7 +305,7 @@ func_declaration : type_specifier ID LPAREN parameter_list RPAREN SEMICOLON
                  	else  
                  	{
                  		semantic_error++;
-                 		fprintf(errorout,"Semantic error found at line no : %d redeclaration of function %s", line_count, func_name);
+                 		fprintf(errorout,"Error at line %d: redeclaration of function %s", line_count, func_name);
 
                  	}
 
@@ -342,7 +342,7 @@ func_declaration : type_specifier ID LPAREN parameter_list RPAREN SEMICOLON
 				 }
                  | type_specifier ID LPAREN RPAREN SEMICOLON
 				 {
-				 	cout<< "At Line no: " <<line_count << " func_declaration : type_specifier ID LPAREN RPAREN SEMICOLON " << endl << endl;
+				 	cout<< "Line " <<line_count<<":"<< " func_declaration : type_specifier ID LPAREN RPAREN SEMICOLON " << endl << endl;
 
 				 	//check if the name of the function already exists or not
 				 	func_name = $2->getName();
@@ -364,7 +364,7 @@ func_declaration : type_specifier ID LPAREN parameter_list RPAREN SEMICOLON
                  	else
                  	{
                  		semantic_error++;
-                 		fprintf(errorout,"Semantic error found at line no : %d redeclaration of function %s", line_count, func_name);
+                 		fprintf(errorout,"Error at line %d: redeclaration of function %s", line_count, func_name);
 
                  	}
 
@@ -381,7 +381,10 @@ func_declaration : type_specifier ID LPAREN parameter_list RPAREN SEMICOLON
 
 func_definition : type_specifier ID LPAREN parameter_list RPAREN {id++; symtab.enterScope(bucket,id); scopeParameters();} compound_statement
 				{
-					cout<< "At Line no: " <<line_count << " func_definition : type_specifier ID LPAREN  parameter_list RPAREN compound_statement " << endl << endl;
+
+					cout<< endl;
+					symtab.PrintAllScope();
+					cout<< "Line " <<line_count<<":"<< " func_definition : type_specifier ID LPAREN  parameter_list RPAREN compound_statement " << endl << endl;
 
 					code_segment = $1->getType() + " " + $2->getName() + "(";
 
@@ -413,19 +416,20 @@ func_definition : type_specifier ID LPAREN parameter_list RPAREN {id++; symtab.e
 					// 	cout<< variables_in_scope[i]->getName() << " "<< variables_in_scope[i]->getType() << endl;
 					// }
 					// cout << endl;
-					symtab.PrintAllScope();
+					//symtab.PrintAllScope();
 					symtab.exitScope(id);
 					//id--;
 					//cout << "current id of scope : " << id << endl;
 
 					//symtab.insert($2->getName(), "ID");
+					
 
 					if (return_status == 1)
 					{
 						if ($1->getType() == "void")
 						{
 							semantic_error++;
-							fprintf(errorout,"Semantic error found at line no : %d type_specifier is of type void, can't have return status", line_count);
+							fprintf(errorout,"Error at line %d: type_specifier is of type void, can't have return status\n", line_count);
 						}
 					}
 					if (return_status == 0)
@@ -433,14 +437,14 @@ func_definition : type_specifier ID LPAREN parameter_list RPAREN {id++; symtab.e
 						if ($1->getType() != "void")
 						{
 							semantic_error++;
-							fprintf(errorout,"Semantic error found at line no : %d type_specifier is not of type void, but missing return status", line_count);
+							fprintf(errorout,"Error at line %d: type_specifier is not of type void, but missing return status", line_count);
 						}
 					}
 					if(return_type != $1->getType())
 					{
 						semantic_error++;
-						fprintf(errorout, "\n found error here \n" );
-						fprintf(errorout,"Semantic error found at line no : %d mismatch of return type", line_count);
+						//fprintf(errorout, "\n found error here \n" );
+						fprintf(errorout,"Error at line %d: mismatch of return type\n", line_count);
 					}
 
 					return_status = 0;
@@ -454,7 +458,7 @@ func_definition : type_specifier ID LPAREN parameter_list RPAREN {id++; symtab.e
 						if (x->getIdentity() != "function_declaration")
 						{
 							semantic_error++;
-							fprintf(errorout,"Semantic error found at line no : %d function with same name already defined", line_count);
+							fprintf(errorout,"Error at line %d: function with same name already defined\n", line_count);
 						}
 						else
 						{
@@ -462,7 +466,7 @@ func_definition : type_specifier ID LPAREN parameter_list RPAREN {id++; symtab.e
 							if (x->edge.size() != $4->edge.size())
 							{
 								semantic_error++;
-								fprintf(errorout,"Semantic error found at line no : %d less or more parameters called", line_count);
+								fprintf(errorout,"Error at line %d: less or more parameters called\n", line_count);
 							}
 							else
 							{
@@ -472,7 +476,7 @@ func_definition : type_specifier ID LPAREN parameter_list RPAREN {id++; symtab.e
 									if ($4->edge[i]->getName() != x->edge[i]->getName())
 									{
 										semantic_error++;
-										fprintf(errorout,"Semantic error found at line no : %d parameters not matched", line_count);
+										fprintf(errorout,"Error at line %d: parameters not matched", line_count);
 										func = 0;
 										break;
 
@@ -480,7 +484,7 @@ func_definition : type_specifier ID LPAREN parameter_list RPAREN {id++; symtab.e
 									else if ($4->edge[i]->getType() != x->edge[i]->getType())
 									{
 										semantic_error++;
-										fprintf(errorout,"Semantic error found at line no : %d parameters type not matched", line_count);
+										fprintf(errorout,"Error at line %d: parameters type not matched", line_count);
 										func = 0;
 										break;	
 									}
@@ -505,13 +509,13 @@ func_definition : type_specifier ID LPAREN parameter_list RPAREN {id++; symtab.e
 									else
 									{
 										semantic_error++;
-										fprintf(errorout,"Semantic error found at line no : %d type not matched with previous declaration", line_count);
+										fprintf(errorout,"Error at line %d: type not matched with previous declaration\n", line_count);
 									}
 								}
 								else
 								{
 									semantic_error++;
-									fprintf(errorout,"Semantic error found at line no : %d parameter_list  not matched", line_count);
+									fprintf(errorout,"Error at line %d: parameter_list  not matched", line_count);
 								}
 							}
 							
@@ -540,13 +544,15 @@ func_definition : type_specifier ID LPAREN parameter_list RPAREN {id++; symtab.e
 
 
 					
-					symtab.printLex();
+					//symtab.printLex();
 					variables_in_scope.clear();
 					
 				}
 				| type_specifier ID LPAREN RPAREN {id++; symtab.enterScope(bucket,id); scopeParameters();} compound_statement
 				{
-					cout<< "At Line no: " <<line_count << " func_definition : type_specifier ID LPAREN RPAREN compound_statement " << endl << endl;
+					symtab.PrintAllScope();
+
+					cout<< "Line " <<line_count<<":"<< " func_definition : type_specifier ID LPAREN RPAREN compound_statement " << endl << endl;
 
 					code_segment = $1->getType() + " " + $2->getName() + "()"+ $6->getName();
 
@@ -564,7 +570,7 @@ func_definition : type_specifier ID LPAREN parameter_list RPAREN {id++; symtab.e
 					// 	cout<< variables_in_scope[i]->getName() << " "<< variables_in_scope[i]->getType() << endl;
 					// }
 					// cout << endl;
-					symtab.PrintAllScope();
+					
 					symtab.exitScope(id);
 					//id--;
 					//cout << "current id of scope : " << id << endl;
@@ -576,7 +582,7 @@ func_definition : type_specifier ID LPAREN parameter_list RPAREN {id++; symtab.e
 						if ($1->getType() == "void")
 						{
 							semantic_error++;
-							fprintf(errorout,"Semantic error found at line no : %d type_specifier is of type void, can't have return status", line_count);
+							fprintf(errorout,"Error at line %d: type_specifier is of type void, can't have return status\n", line_count);
 						}
 					}
 					if (return_status == 0)
@@ -584,7 +590,7 @@ func_definition : type_specifier ID LPAREN parameter_list RPAREN {id++; symtab.e
 						if ($1->getType() != "void")
 						{
 							semantic_error++;
-							fprintf(errorout,"Semantic error found at line no : %d type_specifier is not of type void, but missing return status", line_count);
+							fprintf(errorout,"Error at line %d: type_specifier is not of type void, but missing return status", line_count);
 						}
 					}
 					
@@ -600,7 +606,7 @@ func_definition : type_specifier ID LPAREN parameter_list RPAREN {id++; symtab.e
 						if (x->getIdentity() != "function_declaration")
 						{
 							semantic_error++;
-							fprintf(errorout,"Semantic error found at line no : %d function with same name already defined", line_count);
+							fprintf(errorout,"Error at line %d: function with same name already defined\n", line_count);
 						}
 						else
 						{
@@ -608,7 +614,7 @@ func_definition : type_specifier ID LPAREN parameter_list RPAREN {id++; symtab.e
 							if (x->edge.size()>0)
 							{
 								semantic_error++;
-								fprintf(errorout,"Semantic error found at line no : %d less or more parameters called", line_count);
+								fprintf(errorout,"Error at line %d: less or more parameters called\n", line_count);
 							}
 							else
 							{
@@ -629,7 +635,7 @@ func_definition : type_specifier ID LPAREN parameter_list RPAREN {id++; symtab.e
 									else
 									{
 										semantic_error++;
-										fprintf(errorout,"Semantic error found at line no : %d type not matched with previous declaration", line_count);
+										fprintf(errorout,"Error at line %d: type not matched with previous declaration\n", line_count);
 									}	
 							}
 							
@@ -656,14 +662,14 @@ func_definition : type_specifier ID LPAREN parameter_list RPAREN {id++; symtab.e
 					}
 
 					
-					symtab.printLex();
+					//symtab.printLex();
 					
 				}
 				;
 
 parameter_list :parameter_list COMMA type_specifier ID
 				{
-					cout<< "At Line no: " <<line_count << " parameter_list : parameter_list COMMA type_specifier ID " << endl << endl;
+					cout<< "Line " <<line_count<<":"<< " parameter_list : parameter_list COMMA type_specifier ID " << endl << endl;
 
                		parameter_name = $4->getName();
                		parameter_type = $3->getType();
@@ -718,7 +724,7 @@ parameter_list :parameter_list COMMA type_specifier ID
 				}
                |parameter_list COMMA type_specifier
 			   {
-			    	cout<< "At Line no: " <<line_count << " parameter_list : parameter_list COMMA type_specifier " << endl << endl;
+			    	cout<< "Line " <<line_count<<":"<< " parameter_list : parameter_list COMMA type_specifier " << endl << endl;
 
 			    	parameter_type = $3->getType();
 			    	SymbolInfo *x = new SymbolInfo("",parameter_type);
@@ -789,7 +795,7 @@ parameter_list :parameter_list COMMA type_specifier ID
 
 
 
-               		cout<< "At Line no: " <<line_count << " parameter_list : type_specifier ID" << endl << endl;
+               		cout<< "Line " <<line_count<<":"<< " parameter_list : type_specifier ID" << endl << endl;
                		cout<< parameter_type << " " << parameter_name <<endl << endl;
 
                }
@@ -811,14 +817,14 @@ parameter_list :parameter_list COMMA type_specifier ID
                		$$->edge[position]->setIdentity("parameter");
 
 
-               		cout<< "At Line no: " <<line_count << " parameter_list : type_specifier" << endl << endl;
+               		cout<< "Line " <<line_count<<":"<< " parameter_list : type_specifier" << endl << endl;
                		cout<< parameter_type << endl << endl;
                }
                ; 		    
 
 compound_statement : LCURL statements RCURL
 				   {
-				   	 cout<< "At Line no: " <<line_count << " compound_statement :LCURL statement RCURL" << endl << endl;
+				   	 cout<< "Line " <<line_count<<":"<< " compound_statement : LCURL statements RCURL" << endl << endl;
 				   	 statements_name = "{";
 
 				   	 size = $2->edge.size();
@@ -843,7 +849,7 @@ compound_statement : LCURL statements RCURL
 				   } 
 				   | LCURL RCURL
 				   {
-				   	 cout<< "At Line no: " <<line_count << " compound_statement :LCURL RCURL" << endl << endl;
+				   	 cout<< "Line " <<line_count<<":"<< " compound_statement :LCURL RCURL" << endl << endl;
 				   	 cout << "{}";
 
 				   	 SymbolInfo *s;
@@ -854,7 +860,7 @@ compound_statement : LCURL statements RCURL
 statements : statement
 		   {
 		   	  statement_name = $1->getName();
-              cout<< "At Line no: " <<line_count << " statements : statement " << endl << endl;
+              cout<< "Line " <<line_count<<":"<< " statements : statement " << endl << endl;
               cout << statement_name << endl<<endl;
 
               SymbolInfo *s;
@@ -865,7 +871,7 @@ statements : statement
 		   }
 		   | statements statement
 		   {
-		   	 cout<< "At Line no: " <<line_count << " statements : statements statement " << endl << endl;
+		   	 cout<< "Line " <<line_count<<":"<< " statements : statements statement " << endl << endl;
 
 		   	 $1->edge.push_back($2);
 
@@ -887,28 +893,28 @@ statement : var_declaration
 		  { 
 		  	 $$ = $1;
 		  	 var_declaration_name = $1->getName();
-		  	 cout<< "At Line no: " <<line_count << " statement : var_declaration " << endl << endl;
+		  	 cout<< "Line " <<line_count<<":"<< " statement : var_declaration " << endl << endl;
 		  	 cout << var_declaration_name << endl << endl;
 		  } 
 		  | expression_statement
 		  {
 		  	$$ = $1;
 		  	expression_statement_name = $1->getName();
-		  	cout<< "At Line no: " <<line_count << " statement : expression_statement " << endl << endl;
+		  	cout<< "Line " <<line_count<<":"<< " statement : expression_statement " << endl << endl;
 		  	cout << expression_statement_name << endl << endl;
 		  }
 		  | compound_statement
 		  {
 		    $$ = $1;
 		  	compound_statement_name = $1->getName();
-		  	cout<< "At Line no: " <<line_count << " statement : compound_statement " << endl << endl;
+		  	cout<< "Line " <<line_count<<":"<< " statement : compound_statement " << endl << endl;
 		  	cout << compound_statement_name << endl << endl;
 		  }
 		  | FOR LPAREN expression_statement expression_statement expression RPAREN statement
           {
 
 
-          	cout<< "At Line no: " <<line_count << " statement : FOR LPAREN expression_statement expression_statement expression RPAREN statement " << endl << endl;
+          	cout<< "Line " <<line_count<<":"<< " statement : FOR LPAREN expression_statement expression_statement expression RPAREN statement " << endl << endl;
 
           	loop_statement = "for(" + $3->getName() +$4->getName()+ $5-> getName() + ")"+ $7->getName(); 
 
@@ -921,7 +927,7 @@ statement : var_declaration
           }
           | IF LPAREN expression RPAREN statement %prec LOWER_THAN_ELSE
           {
-          	cout<< "At Line no: " <<line_count << " statement : IF LPAREN expression RPAREN statement " << endl << endl;
+          	cout<< "Line " <<line_count<<":"<< " statement : IF LPAREN expression RPAREN statement " << endl << endl;
 
           	conditional_statement = "if(" + $3->getName() + ")" + $5->getName();
 
@@ -935,7 +941,7 @@ statement : var_declaration
           }
           | IF LPAREN expression RPAREN statement ELSE statement
           {
-          	cout<< "At Line no: " <<line_count << " statement : IF LPAREN expression RPAREN statement  ELSE statement" << endl << endl;
+          	cout<< "Line " <<line_count<<":"<< " statement : IF LPAREN expression RPAREN statement  ELSE statement" << endl << endl;
 
           	conditional_statement = "if(" + $3->getName() + ")" + $5->getName() + "else" + $7->getName();
 
@@ -948,7 +954,7 @@ statement : var_declaration
           }
           | WHILE LPAREN expression RPAREN statement
           {
-          	cout<< "At Line no: " <<line_count << " statement : WHILE LPAREN expression RPAREN statement  ELSE statement" << endl << endl;
+          	cout<< "Line " <<line_count<<":"<< " statement : WHILE LPAREN expression RPAREN statement  ELSE statement" << endl << endl;
 
           	conditional_statement = "while(" + $3->getName() + ")" + $5->getName();
 
@@ -961,7 +967,7 @@ statement : var_declaration
 
           | PRINTLN LPAREN ID RPAREN SEMICOLON
           {
-          	cout<< "At Line no: " <<line_count << " statement : PRINTLN LPAREN ID RPAREN SEMICOLON" << endl << endl;
+          	cout<< "Line " <<line_count<<":"<< " statement : PRINTLN LPAREN ID RPAREN SEMICOLON" << endl << endl;
           	cout << "printf(" << $3->getName() << ");"<<endl << endl;
           }
           | RETURN expression SEMICOLON
@@ -971,7 +977,7 @@ statement : var_declaration
             return_type = $2->getVarType();
           	//cout << return_type << endl;
 
-          	cout<< "At Line no: " <<line_count << " statement : RETURN expression SEMICOLON" << endl << endl;
+          	cout<< "Line " <<line_count<<":"<< " statement : RETURN expression SEMICOLON" << endl << endl;
           	
           	cout<< return_statement << endl << endl;
 
@@ -990,7 +996,7 @@ expression_statement : SEMICOLON
                      	s = new SymbolInfo(";", "expression_statement");
                      	$$ = s;
 
-                     	cout<< "At Line no: " <<line_count << " expression_statement : SEMICOLON " << endl << endl;
+                     	cout<< "Line " <<line_count<<":"<< " expression_statement : SEMICOLON " << endl << endl;
                      	cout<< ";" << endl << endl;
 
 
@@ -1003,7 +1009,7 @@ expression_statement : SEMICOLON
                      	$$ = s;
                      	$$->setVarType($1->getVarType());
 
-                     	cout<< "At Line no: " <<line_count << " expression_statement :expression SEMICOLON " << endl << endl;
+                     	cout<< "Line " <<line_count<<":"<< " expression_statement :expression SEMICOLON " << endl << endl;
                      	cout<< expression_name << endl << endl;
 
 
@@ -1015,7 +1021,7 @@ var_declaration : type_specifier declaration_list SEMICOLON
 				{	
 					code_segment ="";
 					specifier_type = $1->getType();
-					cout<< "At Line no: " <<line_count << " var_declaration : type_specifier declaration_list SEMICOLON  " << endl << endl; 
+					cout<< "Line " <<line_count<<":"<< " var_declaration : type_specifier declaration_list SEMICOLON  " << endl << endl; 
 					cout<< specifier_type << " ";
 					code_segment += specifier_type + " ";
 
@@ -1068,7 +1074,7 @@ var_declaration : type_specifier declaration_list SEMICOLON
  		 
 type_specifier	: INT 
 				{
-					cout<< "At Line no: " <<line_count << " type_specifier: INT" << endl << endl;
+					cout<< "Line " <<line_count<<":"<< " type_specifier: INT" << endl << endl;
 					cout << "int" <<endl << endl;
 					SymbolInfo *s;
 					s = new SymbolInfo("int");
@@ -1078,7 +1084,7 @@ type_specifier	: INT
 				}
 				| FLOAT 
 				{
-					cout<< "At Line no: " <<line_count << " type_specifier: FLOAT" << endl << endl;
+					cout<< "Line " <<line_count<<":"<< " type_specifier: FLOAT" << endl << endl;
 					cout << "float" <<endl << endl;
 					SymbolInfo *s;
 					s = new SymbolInfo("float");
@@ -1087,7 +1093,7 @@ type_specifier	: INT
 				}
 				| VOID 
 				{
-					cout<< "At Line no: " <<line_count << " type_specifier: VOID" << endl << endl;
+					cout<< "Line " <<line_count<<":"<< " type_specifier: VOID" << endl << endl;
 					cout << "void" <<endl << endl;
 					SymbolInfo *s;
 					s = new SymbolInfo("void");
@@ -1099,7 +1105,7 @@ type_specifier	: INT
 declaration_list : declaration_list COMMA ID
 				 {
 				 	var_name = $3->getName();
-				 	cout<< "At Line no: " <<line_count << " declaration_list: declaration_list COMMA ID" << endl << endl;
+				 	cout<< "Line " <<line_count<<":"<< " declaration_list: declaration_list COMMA ID" << endl << endl;
 				 	for (int i = 0; i < $$->edge.size(); ++i)
 					                	{
 					                		if($$->edge[i]->getIdentity() == "array")
@@ -1120,14 +1126,14 @@ declaration_list : declaration_list COMMA ID
                  	if(var_type == "void")
                  	{
                  		semantic_error++;
-                 		fprintf(errorout,"Semantic error found at line no : %d variable can't be of void type.", line_count);
+                 		fprintf(errorout,"Error at line %d: variable can't be of void type\n", line_count);
                  		//now we can't insert	
                  	}
                  	// but if variable type is not "void" we need to insert it into symboltable
                  	else
                  	{
                  		
-                 		if(symtab.insert(var_name,var_type)) // no other variable isn't available in the same name in the currentScope
+                 		if(symtab.insert(var_name,"ID")) // no other variable isn't available in the same name in the currentScope
                  		{
                  			
                  			//symtab.printLex();
@@ -1143,7 +1149,7 @@ declaration_list : declaration_list COMMA ID
                  		else // it exists already, so error
                  		{
                  			error++;
-                 			fprintf(errorout,"Semantic error found at line no : %d multiple declaration of variable.\n", line_count);	
+                 			fprintf(errorout,"Error at line %d: multiple declaration of variable.\n", line_count);	
                  		}
 
                  	}
@@ -1155,7 +1161,7 @@ declaration_list : declaration_list COMMA ID
                  	var_name = $3->getName();
                  	bracket_material = $5->getName();
                  	size = stoi($5->getName());
-					cout<< "At Line no: " <<line_count << " declaration_list: declaration_list COMMA ID LTHIRD CONST_INT RTHIRD" << endl << endl; 
+					cout<< "Line " <<line_count<<":"<< " declaration_list: declaration_list COMMA ID LTHIRD CONST_INT RTHIRD" << endl << endl; 
 					//now print the declaration list
 					for (int i = 0; i < $$->edge.size(); ++i)
 					                	{
@@ -1179,14 +1185,14 @@ declaration_list : declaration_list COMMA ID
                  	if(var_type == "void")
                  	{
                  		semantic_error++;
-                 		fprintf(errorout,"Semantic error found at line no : %d variable can't be of void type.", line_count);
+                 		fprintf(errorout,"Error at line %d: variable can't be of void type.", line_count);
                  		//now we can't insert	
                  	}
                  	// but if variable type is not "void" we need to insert it into symboltable
                  	else
                  	{
                  		
-                 		if(symtab.insert(var_name,var_type)) // no other variable isn't available in the same name in the currentScope
+                 		if(symtab.insert(var_name,"ID")) // no other variable isn't available in the same name in the currentScope
                  		{
                  			
                  			//symtab.printLex();
@@ -1203,7 +1209,7 @@ declaration_list : declaration_list COMMA ID
                  		else// it exists already, so error
                  		{
                  			error++;
-                 			fprintf(errorout,"Semantic error found at line no : %d multiple declaration of variable.\n", line_count);	
+                 			fprintf(errorout,"Error at line %d: multiple declaration of variable.\n", line_count);	
                  		}
                  	}
 
@@ -1211,7 +1217,7 @@ declaration_list : declaration_list COMMA ID
                  | ID
                  {	
                  	var_name = $1->getName();
-                 	cout<< "At Line no: " <<line_count << " declaration_list: ID" << endl << endl;
+                 	cout<< "Line " <<line_count<<":"<< " declaration_list: ID" << endl << endl;
                  	cout<< var_name << endl << endl;
                  	SymbolInfo *s;
                  	s = new SymbolInfo("declaration_list");
@@ -1225,14 +1231,14 @@ declaration_list : declaration_list COMMA ID
                  	if(var_type == "void")
                  	{
                  		semantic_error++;
-                 		fprintf(errorout,"Semantic error found at line no : %d variable can't be of void type.", line_count);
+                 		fprintf(errorout,"Error at line %d: variable can't be of void type.\n", line_count);
                  		//now we can't insert	
                  	}
                  	// but if variable type is not "void" we need to insert it into symboltable
                  	else
                  	{
                  		
-                 		if(symtab.insert(var_name,var_type)) // no other variable isn't available in the same name in the currentScope
+                 		if(symtab.insert(var_name,"ID")) // no other variable isn't available in the same name in the currentScope
                  		{
                  			
                  			//symtab.printLex();
@@ -1248,7 +1254,7 @@ declaration_list : declaration_list COMMA ID
                  		else // it exists already, so error
                  		{
                  			error++;
-                 			fprintf(errorout,"Semantic error found at line no : %d multiple declaration of variable.\n", line_count);	
+                 			fprintf(errorout,"Error at line %d: multiple declaration of variable.\n", line_count);	
                  		}
 
                  	}
@@ -1263,7 +1269,7 @@ declaration_list : declaration_list COMMA ID
                  	bracket_material = $3->getName();
                  	size = stoi($3->getName());
                  	cout << size << endl << endl;
-                 	cout<< "At Line no: " <<line_count << " declaration_list: ID LTHIRD CONST_INT RTHIRD" << endl << endl;
+                 	cout<< "Line " <<line_count<<":"<< " declaration_list: ID LTHIRD CONST_INT RTHIRD" << endl << endl;
                  	cout<< var_name << "["<< bracket_material << "]" <<endl << endl;
                  	SymbolInfo *s;
                  	s = new SymbolInfo("declaration_list");
@@ -1280,13 +1286,13 @@ declaration_list : declaration_list COMMA ID
                  	if(var_type == "void")
                  	{
                  		semantic_error++;
-                 		fprintf(errorout,"Semantic error found at line no : %d variable can't be of void type.", line_count);
+                 		fprintf(errorout,"Error at line %d: variable can't be of void type\n", line_count);
                  		//now we can't insert	
                  	}
                  	// but if variable type is not "void" we need to insert it into symboltable
                  	else
                  	{
-                 		if(symtab.insert(var_name,var_type)) // no other variable isn't available in the same name in the currentScope
+                 		if(symtab.insert(var_name,"ID")) // no other variable isn't available in the same name in the currentScope
                  		{
                  			
                  			//symtab.printLex();
@@ -1315,7 +1321,7 @@ variable : ID
 		  	$$-> setIdentity("variable");
 
 
-		  	cout<< "At Line no: " << line_count << " variable : ID" << endl << endl;
+		  	cout<< "Line " << line_count << ": variable : ID" << endl << endl;
 		  	expression_name = $1->getName();
 		  	cout << expression_name << endl << endl;
 
@@ -1325,7 +1331,7 @@ variable : ID
 		  	if(temp == NULL)
 		  	{
 		  		semantic_error++;
-				fprintf(errorout, "Semantic error found at line no : %d variable %s not declared in the current scope. \n",line_count, $1->getName().c_str());
+				fprintf(errorout, "Error at line %d: variable %s not declared in the current scope. \n",line_count, $1->getName().c_str());
 		  	}
 		  	else if (temp != NULL)
 		  	{
@@ -1344,7 +1350,7 @@ variable : ID
 		  	$$-> setVarType($3-> getVarType()); //cout<< $$->getVarType() <<endl << endl;
 
 
-		  	cout<< "At Line no: " << line_count << " variable : ID LTHIRD expression RTHIRD " << endl << endl;
+		  	cout<< "Line " << line_count <<":" <<" variable : ID LTHIRD expression RTHIRD " << endl << endl;
 		  	expression_name = $1->getName() + "[" + $3-> getName() + "]";
 		  	cout << expression_name << endl << endl;
 
@@ -1353,7 +1359,7 @@ variable : ID
 		  	if ($3->getVarType() != "int" )
 		  	{
 		  		semantic_error++;
-				fprintf(errorout, "Semantic error found at line no : %d Array index must be integer. \n",line_count);
+				fprintf(errorout, "Error at line %d: Array index must be integer. \n",line_count);
 		  	}
 
 		  	// if id not declared before in the current scope. then semantic error
@@ -1363,7 +1369,7 @@ variable : ID
 		  	if(temp == NULL)
 		  	{
 		  		semantic_error++;
-				fprintf(errorout, "Semantic error found at line no : %d variable %s not declared in the current scope. \n",line_count, $1->getName().c_str());
+				fprintf(errorout, "Error at line %d: variable %s not declared in the current scope. \n",line_count, $1->getName().c_str());
 		  	}
 		  	else if (temp != NULL)
 		  	{
@@ -1376,7 +1382,7 @@ variable : ID
 expression : logic_expression
 			{
 				$$ = $1;
-				cout<< "At Line no: " << line_count << " expression : logic_expression " << endl << endl;
+				cout<< "Line " << line_count << ": expression : logic expression " << endl << endl;
 				logic_expression_name = $1->getName();
 				cout << logic_expression_name << endl << endl;
 			}
@@ -1416,7 +1422,7 @@ expression : logic_expression
                 }
 
 
-				cout << "At Line no: " << line_count << " expression : variable ASSIGNOP logic_expression " << endl << endl;
+				cout << "Line " << line_count << ": expression : variable ASSIGNOP logic_expression " << endl << endl;
 				cout << var_name << "=" << $3->getName() << endl << endl;
                 
                 
@@ -1443,7 +1449,7 @@ expression : logic_expression
 					{
 
 						semantic_error++;
-						fprintf(errorout, "Semantic error found at line no : %d variable type is different on both side of ASSIGNOP. \n",line_count);
+						fprintf(errorout, "Error at line %d: variable type is different on both side of ASSIGNOP. \n",line_count);
 					}
 
 					if(temp->getIdentity() != "array")
@@ -1451,7 +1457,7 @@ expression : logic_expression
 						if($1->size != 0)
 						{
 							semantic_error++;
-							fprintf(errorout, "Semantic error found at line no : %d variable %s Array Index Error. \n",line_count);
+							fprintf(errorout, "Error at line %d: variable %s Array Index Error. \n",line_count);
 						}
 					}
 					else if (temp->getIdentity() == "array")
@@ -1459,7 +1465,7 @@ expression : logic_expression
 						if ($1->getIdentity() != "array")
 						{
 							semantic_error++;
-							fprintf(errorout, "Semantic error found at line no : %d variable %s Array Index Error. \n",line_count);
+							fprintf(errorout, "Error at line %d: variable %s Array Index Error. \n",line_count);
 						}
 					}
 
@@ -1468,7 +1474,7 @@ expression : logic_expression
 				else if (temp == NULL)
 				{
 					semantic_error++;
-				    fprintf(errorout, "Semantic error found at line no : %d variable %s not declared in the current scope. \n",line_count, $1->getName().c_str());
+				    fprintf(errorout, "Error at line %d: variable %s not declared in the current scope. \n",line_count, $1->getName().c_str());
 				}
 
 			}
@@ -1478,13 +1484,13 @@ expression : logic_expression
 logic_expression : rel_expression
 				 {
 				 	$$ = $1;
-				  	cout<< "At Line no: " << line_count << " logic_expression : rel_expression" << endl << endl;
+				  	cout<< "Line " << line_count << ": logic_expression : rel_expression" << endl << endl;
 				  	rel_expression_name = $1->getName();
 				  	cout << rel_expression_name << endl << endl;
 				 }
 				 | rel_expression LOGICOP rel_expression
 				 {
-				 	cout<< "At Line no: " << line_count << " logic_expression : rel_expression LOGICOP rel_expression" << endl << endl;
+				 	cout<< "Line " << line_count << ": logic_expression : rel_expression LOGICOP rel_expression" << endl << endl;
 					rel_expression_name =$1->getName() + $2->getName() + $3->getName();
 					cout << rel_expression_name << endl << endl;
 
@@ -1499,12 +1505,12 @@ logic_expression : rel_expression
 					if ($1->getVarType() != "int")
 					{
 						semantic_error++;
-						fprintf(errorout, "Semantic error found at line no : %d %s is only possible between integers. \n",line_count, $2->getName().c_str() );
+						fprintf(errorout, "Error at line %d: %s is only possible between integers. \n",line_count, $2->getName().c_str() );
 					}
 					else if ($3->getVarType() != "int")
 					{
 						semantic_error++;
-						fprintf(errorout, "Semantic error found at line no : %d %s is only possible between integers. \n",line_count, $2->getName().c_str() );
+						fprintf(errorout, "Error at line %d: %s is only possible between integers. \n",line_count, $2->getName().c_str() );
 
 					}
 				 }
@@ -1513,14 +1519,35 @@ logic_expression : rel_expression
 rel_expression : simple_expression
 				{
 					$$ = $1;
-				  	cout<< "At Line no: " << line_count << " rel_expression : simple_expression" << endl << endl;
+				  	cout<< "Line " << line_count << ": rel_expression : simple_expression" << endl << endl;
 				  	simple_expression_name = $1->getName();
 				  	cout << simple_expression_name << endl << endl;
 				}
 				| simple_expression RELOP simple_expression
 				{
-					cout<< "At Line no: " << line_count << " rel_expression : simple_expression RELOP simple_expression" << endl << endl;
-					simple_expression_name =$1->getName() + $2->getName() + $3->getName();
+					cout<< "Line " << line_count << ": rel_expression : simple_expression RELOP simple_expression" << endl << endl;
+					string a,b;
+					if($1->getIdentity() == "array")
+					 {
+						 a= $1->getName()+ "[" + int2s($1->size) + "]";
+					 }
+					 else
+					 {
+						 a = $1->getName();
+					 }
+
+					  if($3->getIdentity() == "array")
+					 {
+						 b= $3->getName()+ "[" + int2s($3->size) + "]";
+					 }
+					 else
+					 {
+						 b = $3->getName();
+					 }
+
+					 simple_expression_name = a + $2->getName()+ b;
+
+					//simple_expression_name =$1->getName() + $2->getName() + $3->getName();
 					cout << simple_expression_name << endl << endl;
 
 					SymbolInfo *s;
@@ -1534,12 +1561,12 @@ rel_expression : simple_expression
 					if ($1->getVarType() != "int")
 					{
 						semantic_error++;
-						fprintf(errorout, "Semantic error found at line no : %d %s is only possible between integers. \n",line_count, $2->getName().c_str() );
+						fprintf(errorout, "Error at line %d: %s is only possible between integers. \n",line_count, $2->getName().c_str() );
 					}
 					else if ($3->getVarType() != "int")
 					{
 						semantic_error++;
-						fprintf(errorout, "Semantic error found at line no : %d %s is only possible between integers. \n",line_count, $2->getName().c_str() );
+						fprintf(errorout, "Error at line %d: %s is only possible between integers. \n",line_count, $2->getName().c_str() );
 
 					}
 
@@ -1550,15 +1577,49 @@ rel_expression : simple_expression
 simple_expression : term
 				  {
 				  	$$ = $1;
-				  	cout<< "At Line no: " <<line_count << " simple_expression : term" << endl << endl;
+				  	cout<< "Line " <<line_count<<":"<< " simple_expression : term" << endl << endl;
 				  	term_name = $1->getName();
-				  	cout << term_name << endl << endl;
+					  if($1->getIdentity() == "array")
+					{
+						cout << term_name <<"["<< $1->size << "]"<<endl << endl;
+					} 
+					else
+					{
+						cout << term_name <<endl << endl;
+					}
+
+				  	
 				  }
 				  | simple_expression ADDOP term
 				  {
-				 	cout<< "At Line no: " <<line_count << " simple_expression : simple_expression ADDOP term" << endl << endl;
+				 	cout<< "Line " <<line_count<<":"<< " simple_expression : simple_expression ADDOP term" << endl << endl;
+					 term_name = "";
+					 string a,b;
 
-				 	term_name = $1->getName()+ $2->getName() + $3->getName();
+					 if($1->getIdentity() == "array")
+					 {
+						 a= $1->getName()+ "[" + int2s($1->size) + "]";
+					 }
+					 else
+					 {
+						 a = $1->getName();
+					 }
+
+					  if($3->getIdentity() == "array")
+					 {
+						 b= $3->getName()+ "[" + int2s($3->size) + "]";
+					 }
+					 else
+					 {
+						 b = $3->getName();
+					 }
+
+					 term_name = a + $2->getName()+b;
+					
+
+					//cout << term_name <<endl;
+
+				 	//term_name = $1->getName()+ $2->getName() + $3->getName();
 				 	cout << term_name << endl << endl;
 
 				 	SymbolInfo *s;
@@ -1583,17 +1644,49 @@ simple_expression : term
 term : unary_expression
 	 {
 	 	$$ = $1;
-	 	cout<< "At Line no: " <<line_count << " term : unary_expression" << endl << endl;
+	 	cout<< "Line " <<line_count<<":"<< " term : unary_expression" << endl << endl;
 	 	unary_expression_name = $1->getName();
-	 	cout << unary_expression_name << endl << endl;
+
+			if($1->getIdentity() == "array")
+					{
+						cout << unary_expression_name <<"["<< $1->size << "]"<<endl << endl;
+					} 
+					else
+					{
+						cout << unary_expression_name <<endl << endl;
+					}
+
+
+	 	
 
 
 	 }
 	 | term MULOP unary_expression
 	 {
-	 	cout<< "At Line no: " <<line_count << " term :term MULOP unary_expression" << endl << endl;
+	 	cout<< "Line " <<line_count<<":"<< " term :term MULOP unary_expression" << endl << endl;
 	 	//cout << unary_expression_name << endl << endl;
-	 	unary_expression_name =$1->getName() + $2->getName() + $3->getName();
+		 string a;
+
+					if($1->getIdentity() == "array")
+					{
+						a = $1->getName()+ "["+ int2s($1->size) + "]";
+					} 
+					else
+					{
+						a = $1->getName();
+					}
+		string b;
+
+					if($3->getIdentity() == "array")
+					{
+						b = $3->getName()+ "["+ int2s($3->size) + "]";
+					} 
+					else
+					{
+						b = $3->getName();
+					}			
+
+	 	unary_expression_name =a + $2->getName() + b;
 	 	cout << unary_expression_name << endl << endl;
 
 	 	SymbolInfo *s;
@@ -1624,13 +1717,13 @@ term : unary_expression
 	 		if($1->getVarType() != "int")
 	 		{
 	 			semantic_error++;
-	 			fprintf(errorout, "Semantic error found at line no : %d MOD is only possible between integers. \n",line_count );
+	 			fprintf(errorout, "Error at line %d: MOD is only possible between integers. \n",line_count );
 	 		}
 	 		else if($3-> getVarType() != "int" )
 	 		{
 	 			
 	 			semantic_error++;
-	 			fprintf(errorout, "Semantic error found at line no : %d MOD is only possible between integers. \n",line_count );
+	 			fprintf(errorout, "Error at line %d: MOD is only possible between integers. \n",line_count );
 	 		
 	 		}
 	 	}
@@ -1640,8 +1733,20 @@ term : unary_expression
 
 unary_expression : ADDOP unary_expression
 				 {
-				 	cout<< "At Line no: " <<line_count << " unary_expression : ADDOP unary_expression " << endl << endl;
-                 	factor_name = $1->getName()+$2->getName();
+				 	cout<< "Line " <<line_count<<":"<< " unary_expression : ADDOP unary_expression " << endl << endl;
+
+					string a;
+
+					if($2->getIdentity() == "array")
+					{
+						a = $2->getName()+ "["+ int2s($2->size) + "]";
+					} 
+					else
+					{
+						a = $2->getName();
+					}
+					 
+                 	factor_name = $1->getName()+a;
                  	factor_type = $2->getType();
                  	cout << factor_name << endl << endl;
 
@@ -1653,7 +1758,7 @@ unary_expression : ADDOP unary_expression
 				 }
 				 | NOT unary_expression
                  {
-                 	cout<< "At Line no: " <<line_count << " unary_expression : NOT unary_expression " << endl << endl;
+                 	cout<< "Line " <<line_count<<":"<< " unary_expression : NOT unary expression " << endl << endl;
                  	factor_name = $2->getName();
                  	factor_type = $2->getType();
                  	cout << "!" << factor_name << endl << endl;
@@ -1670,9 +1775,17 @@ unary_expression : ADDOP unary_expression
 				 | factor
 				 {	
 				 	$$ = $1;
-				 	cout<< "At Line no: " <<line_count << " unary_expression : factor " << endl << endl;
+				 	cout<< "Line " <<line_count<<":"<< " unary_expression : factor " << endl << endl;
 				 	factor_name = $1->getName();
-				 	cout << factor_name <<endl << endl;
+					if($1->getIdentity() == "array")
+					{
+						cout << factor_name <<"["<< $1->size << "]"<<endl << endl;
+					} 
+					else
+					{
+						cout << factor_name <<endl << endl;
+					}
+				 	
 				 }
 				 ;
 
@@ -1680,12 +1793,23 @@ factor :variable
 		{
 		 $$ = $1;
 		 variable_name = $1->getName();
-		 cout<< "At Line no: " <<line_count << " factor : variable " << endl << endl;
-	   	 cout << variable_name << endl << endl;
+		 variable_identity = $1->getIdentity();
+		 //cout<< variable_identity << endl;
+		 
+		 cout<< "Line " <<line_count<<":"<< " factor : variable " << endl << endl;
+		 if(variable_identity == "array")
+		 {
+			 cout << variable_name << "["<< $1->size << "]"<<endl<<endl;
+		 }
+		 else
+		 {
+            cout << variable_name << endl << endl;
+		 }
+	   	 
 		}
 		| ID LPAREN argument_list RPAREN
 		{
-			cout<< "At Line no: " <<line_count << " factor : ID LPAREN argument_list RPAREN " << endl << endl;
+			cout<< "Line " <<line_count<<":"<< " factor : ID LPAREN argument_list RPAREN " << endl << endl;
 			cout<< $1->getName() << "("<< $3->getName() <<")" << endl << endl;
 
 			SymbolInfo *s;
@@ -1700,7 +1824,7 @@ factor :variable
 			{
 				$$->setVarType("func_not_found");
 				semantic_error++;
-	 			fprintf(errorout, "Semantic error found at line no : %d function named not defined \n",line_count );
+	 			fprintf(errorout, "Error at line %d: function named not defined \n",line_count );
 			}
 			else if(x != NULL)
 			{
@@ -1716,7 +1840,7 @@ factor :variable
 					if (x->edge.size() != args.size())
 					{
 						semantic_error++;
-	 					fprintf(errorout, "Semantic error found at line no : %d arguments number not matched \n",line_count );
+	 					fprintf(errorout, "Error at line %d: arguments number not matched \n",line_count );
 
 					}
 					else //type mismatched of arguments passed
@@ -1727,7 +1851,7 @@ factor :variable
 							if (args[i]->getIdentity() == "variable")
 							{
 								semantic_error++;
-	 							fprintf(errorout, "Semantic error found at line no : %d type mismatched of arguments \n",line_count );
+	 							fprintf(errorout, "Error at line %d: type mismatched of arguments \n",line_count );
 	 							break;
 							}
 
@@ -1739,13 +1863,13 @@ factor :variable
 								if (x->getVarType() != temp->edge[i]->getVarType())
 								{
 									semantic_error++;
-	 								fprintf(errorout, "Semantic error found at line no : %d type mismatched of arguments \n",line_count );
+	 								fprintf(errorout, "Error at line %d: type mismatched of arguments \n",line_count );
 	 								break;
 								}
 								else if (x->size != temp->edge[i]->size)
 								{
 									semantic_error++;
-	 								fprintf(errorout, "Semantic error found at line no : %d more or less arguments \n",line_count );
+	 								fprintf(errorout, "Error at line %d: more or less arguments \n",line_count );
 	 								break;
 								}
 							}
@@ -1767,7 +1891,7 @@ factor :variable
 	   	 $$ = s;
 	   	 $$->setVarType($2->getVarType());
 
-	   	 cout<< "At Line no: " <<line_count << " factor : LPAREN expression RPAREN " << endl << endl;
+	   	 cout<< "Line " <<line_count<<":"<< " factor : LPAREN expression RPAREN " << endl << endl;
 	   	 cout << expression_name << endl << endl;
 
 		}
@@ -1777,7 +1901,7 @@ factor :variable
 	   	 $$=$1;
 	   	 $$->setVarType("int");
 
-	   	 cout<< "At Line no: " <<line_count << " factor : CONST_INT " << endl << endl;
+	   	 cout<< "Line " <<line_count<<":"<< " factor : CONST_INT " << endl << endl;
 	   	 int_name = $1->getName();
 
 	   	 cout << int_name <<endl << endl;
@@ -1787,7 +1911,7 @@ factor :variable
 	   	 $$=$1;
 	   	 $$->setVarType("float");
 
-	   	 cout<< "At Line no: " <<line_count << " factor : CONST_FLOAT " << endl << endl;
+	   	 cout<< "Line " <<line_count<<":"<< " factor : CONST_FLOAT " << endl << endl;
 	   	 float_name = $1->getName();
 
 	   	 cout << float_name <<endl << endl;
@@ -1795,28 +1919,50 @@ factor :variable
 	   
 	   | variable DECOP
 	   {
-         variable_name = $1-> getName() + "--";
+		  string a;
+
+					if($1->getIdentity() == "array")
+					{
+						a = $1->getName()+ "["+ int2s($1->size) + "]";
+					} 
+					else
+					{
+						a = $1->getName();
+					}
+		 
+         variable_name = a + "--";
 
 	   	 SymbolInfo *s;
 	   	 s = new SymbolInfo(variable_name, "factor");
 	   	 $$ = s;
 	   	 $$->setVarType($1->getVarType());
 
-	   	 cout<< "At Line no: " <<line_count << " factor : variable DECOP " << endl << endl;
+	   	 cout<< "Line " <<line_count<<":"<< " factor : variable DECOP " << endl << endl;
 	   	 cout << variable_name << endl << endl;
 
 
 	   } 
 	   | variable INCOP
 	   {
-	   	 variable_name = $1-> getName() + "++";
+		    string a;
+
+					if($1->getIdentity() == "array")
+					{
+						a = $1->getName()+ "["+ int2s($1->size) + "]";
+					} 
+					else
+					{
+						a = $1->getName();
+					}
+	
+	   	 variable_name = a + "++";
 
 	   	 SymbolInfo *s;
 	   	 s = new SymbolInfo(variable_name, "factor");
 	   	 $$ = s;
 	   	 $$->setVarType($1->getVarType());
 
-	   	 cout<< "At Line no: " <<line_count << " factor : variable INCOP " << endl << endl;
+	   	 cout<< "Line " <<line_count<<":"<< " factor : variable INCOP " << endl << endl;
 	   	 cout << variable_name << endl << endl;
 	   } 
 	   ;  
@@ -1827,7 +1973,7 @@ argument_list : arguments
 			  	 $$=$1;
 			  	 $$->setType("argument_list");
 
-			  	 cout<< "At Line no: " <<line_count << " argument_list : arguments" << endl << endl;
+			  	 cout<< "Line " <<line_count<<":"<< " argument_list : arguments" << endl << endl;
 			  	 arguments_name = $1->getName();
 			  	 cout << arguments_name << endl << endl;
 			  }	 
@@ -1842,7 +1988,7 @@ argument_list : arguments
 			  
 arguments : arguments COMMA logic_expression
           {
-          	cout<< "At Line no: " <<line_count << " arguments:arguments COMMA logic_expression" << endl << endl;
+          	cout<< "Line " <<line_count<<":"<< " arguments:arguments COMMA logic_expression" << endl << endl;
           	logic_name = $1->getName()+  "," + $3->getName();
           	cout << logic_name << endl << endl;
 
@@ -1859,7 +2005,7 @@ arguments : arguments COMMA logic_expression
 		  	args.push_back($$);
 
 		  	logic_name = $1->getName();
-		  	cout<< "At Line no: " <<line_count << " arguments: logic_expression" << endl << endl;
+		  	cout<< "Line " <<line_count<<":"<< " arguments: logic_expression" << endl << endl;
 		  	cout << logic_name << endl << endl;
 
 
@@ -1890,6 +2036,9 @@ int main(int argc,char *argv[])
 	yyin= fin;
 	
 	yyparse();
+
+	cout << "Total lines: "<<line_count<<endl<< "Total errors: "<<semantic_error <<endl;
+
 
     fprintf(errorout, "\n Total errors : %d \n", semantic_error );
 	

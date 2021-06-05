@@ -246,7 +246,7 @@ public:
 
     void Print()
     {
-        cout << "Scopetable# " << scopeid << endl;
+        cout << "ScopeTable# " << scopeid << endl;
         for(int i = 0; i< bucket; i++)
         {
             SymbolInfo *sym;
@@ -278,7 +278,7 @@ public:
     
     void PrintCurrentBucket()
     {	
-    		cout << "Scopetable # " << scopeid << endl;
+    		cout << "ScopeTable # " << scopeid << endl;
         for(int i = 0; i< bucket; i++)
         {
             SymbolInfo *sym;
@@ -361,7 +361,7 @@ public:
         currentScope = new ScopeTable(n,id,currentScope);
 
         //cout << "Hello" <<endl;
-        cout<< "New ScopeTable with ID " << id << " created" <<endl;
+      //  cout<< "New ScopeTable with ID " << id << " created" <<endl;
 
     }
 
@@ -373,7 +373,7 @@ public:
         }
         else
         {
-            cout<< "ScopeTable with ID " << id << " removed" <<endl;
+            //cout<< "ScopeTable with ID " << id << " removed" <<endl;
 
             currentScope = currentScope->getParentScope();
             //id--;
