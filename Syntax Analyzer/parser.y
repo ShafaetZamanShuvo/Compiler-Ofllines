@@ -314,6 +314,8 @@ func_declaration : type_specifier ID LPAREN parameter_list RPAREN SEMICOLON
 
                  	size = $4->edge.size();
 
+					//fprintf(errorout," edge size %d",size); 
+
                		for (int i = 0; i < size; ++i)
                		{
                			if(i < (size - 1))
@@ -1445,7 +1447,7 @@ expression : logic_expression
 
 				if(temp != NULL)
 				{	
-					if (temp-> getVarType() != $3-> getVarType())
+					if ((temp-> getVarType() == "int" && $3-> getVarType() != "int" ) | (temp-> getVarType() == "float" && $3-> getVarType() == "char") | (temp-> getVarType() == "char" && $3-> getVarType() != "char"))
 					{
 
 						semantic_error++;
@@ -1558,15 +1560,17 @@ rel_expression : simple_expression
 					//relop will have int on both sides
 					// else symantic error
 
-					if ($1->getVarType() != "int")
+					if (($1->getVarType() == "int" | $1->getVarType() == "float" ) && ($3->getVarType() == "char"))
 					{
 						semantic_error++;
-						fprintf(errorout, "Error at line %d: %s is only possible between integers. \n",line_count, $2->getName().c_str() );
+						
+						fprintf(errorout, "Error at line %d: %s is only possible between integers or floats. \n",line_count, $2->getName().c_str() );
 					}
-					else if ($3->getVarType() != "int")
+					else if (($3->getVarType() == "int" | $3->getVarType() == "float" ) && ($1->getVarType() == "char"))
 					{
 						semantic_error++;
-						fprintf(errorout, "Error at line %d: %s is only possible between integers. \n",line_count, $2->getName().c_str() );
+						
+						fprintf(errorout, "Error at line %d: %s is only possible between integers or floats. \n",line_count, $2->getName().c_str() );
 
 					}
 
@@ -1836,9 +1840,10 @@ factor :variable
 			{
 				if (x->getIdentity() == "func_defined")
 				{
-					//size mismarch of arguments passed
+					//size mismatch of arguments passed
 					if (x->edge.size() != args.size())
 					{
+						//fprintf(errorout, "x->edgesize = %d args.size = %d\n",x->edge.size(),args.size());
 						semantic_error++;
 	 					fprintf(errorout, "Error at line %d: arguments number not matched \n",line_count );
 
