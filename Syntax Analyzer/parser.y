@@ -425,6 +425,7 @@ func_definition : type_specifier ID LPAREN parameter_list RPAREN {id++; symtab.e
 
 					//symtab.insert($2->getName(), "ID");
 					
+					return_type = $1->getType();
 
 					if (return_status == 1)
 					{
@@ -446,6 +447,8 @@ func_definition : type_specifier ID LPAREN parameter_list RPAREN {id++; symtab.e
 					{
 						semantic_error++;
 						//fprintf(errorout, "\n found error here \n" );
+						fprintf(errorout, "\n  %s  \n",return_type.c_str() );
+						fprintf(errorout, "\n  %s  \n",$1->getType().c_str() );
 						fprintf(errorout,"Error at line %d: mismatch of return type\n", line_count);
 					}
 
@@ -460,7 +463,7 @@ func_definition : type_specifier ID LPAREN parameter_list RPAREN {id++; symtab.e
 						if (x->getIdentity() != "function_declaration")
 						{
 							semantic_error++;
-							fprintf(errorout,"Error at line %d: function with same name already defined\n", line_count);
+							fprintf(errorout,"Error at line %d: Multiple declaration of %s\n", line_count, $2->getName().c_str());
 						}
 						else
 						{
@@ -468,7 +471,7 @@ func_definition : type_specifier ID LPAREN parameter_list RPAREN {id++; symtab.e
 							if (x->edge.size() != $4->edge.size())
 							{
 								semantic_error++;
-								fprintf(errorout,"Error at line %d: less or more parameters called\n", line_count);
+								fprintf(errorout,"Error at line %d: Total number of arguments mismatch with declaration in function %s\n", line_count,$2->getName().c_str());
 							}
 							else
 							{
@@ -511,7 +514,7 @@ func_definition : type_specifier ID LPAREN parameter_list RPAREN {id++; symtab.e
 									else
 									{
 										semantic_error++;
-										fprintf(errorout,"Error at line %d: type not matched with previous declaration\n", line_count);
+										fprintf(errorout,"Error at line %d: Return type mismatch with function declaration in function %s\n", line_count, $2->getName().c_str());
 									}
 								}
 								else
@@ -608,7 +611,7 @@ func_definition : type_specifier ID LPAREN parameter_list RPAREN {id++; symtab.e
 						if (x->getIdentity() != "function_declaration")
 						{
 							semantic_error++;
-							fprintf(errorout,"Error at line %d: function with same name already defined\n", line_count);
+							fprintf(errorout,"Error at line %d: Multiple declaration of %s\n", line_count, $2->getName().c_str());
 						}
 						else
 						{
@@ -616,7 +619,7 @@ func_definition : type_specifier ID LPAREN parameter_list RPAREN {id++; symtab.e
 							if (x->edge.size()>0)
 							{
 								semantic_error++;
-								fprintf(errorout,"Error at line %d: less or more parameters called\n", line_count);
+								fprintf(errorout,"Error at line %d: Total number of arguments mismatch with declaration in function %s\n", line_count,$2->getName().c_str());
 							}
 							else
 							{
@@ -637,7 +640,7 @@ func_definition : type_specifier ID LPAREN parameter_list RPAREN {id++; symtab.e
 									else
 									{
 										semantic_error++;
-										fprintf(errorout,"Error at line %d: type not matched with previous declaration\n", line_count);
+										fprintf(errorout,"Error at line %d: Return type mismatch with function declaration in function %s\n", line_count,$2->getName().c_str());
 									}	
 							}
 							
@@ -1128,7 +1131,7 @@ declaration_list : declaration_list COMMA ID
                  	if(var_type == "void")
                  	{
                  		semantic_error++;
-                 		fprintf(errorout,"Error at line %d: variable can't be of void type\n", line_count);
+                 		fprintf(errorout,"Error at line %d: Variable type cannot be void\n", line_count);
                  		//now we can't insert	
                  	}
                  	// but if variable type is not "void" we need to insert it into symboltable
@@ -1151,7 +1154,7 @@ declaration_list : declaration_list COMMA ID
                  		else // it exists already, so error
                  		{
                  			error++;
-                 			fprintf(errorout,"Error at line %d: multiple declaration of variable.\n", line_count);	
+                 			fprintf(errorout,"Error at line %d: Multiple declaration of %s\n", line_count, $3->getName().c_str());	
                  		}
 
                  	}
@@ -1187,7 +1190,7 @@ declaration_list : declaration_list COMMA ID
                  	if(var_type == "void")
                  	{
                  		semantic_error++;
-                 		fprintf(errorout,"Error at line %d: variable can't be of void type.", line_count);
+                 		fprintf(errorout,"Error at line %d: Variable type cannot be void.", line_count);
                  		//now we can't insert	
                  	}
                  	// but if variable type is not "void" we need to insert it into symboltable
@@ -1211,7 +1214,7 @@ declaration_list : declaration_list COMMA ID
                  		else// it exists already, so error
                  		{
                  			error++;
-                 			fprintf(errorout,"Error at line %d: multiple declaration of variable.\n", line_count);	
+                 			fprintf(errorout,"Error at line %d: Multiple declaration of %s\n", line_count, $3->getName().c_str());	
                  		}
                  	}
 
@@ -1233,7 +1236,7 @@ declaration_list : declaration_list COMMA ID
                  	if(var_type == "void")
                  	{
                  		semantic_error++;
-                 		fprintf(errorout,"Error at line %d: variable can't be of void type.\n", line_count);
+                 		fprintf(errorout,"Error at line %d: Variable type cannot be void.\n", line_count);
                  		//now we can't insert	
                  	}
                  	// but if variable type is not "void" we need to insert it into symboltable
@@ -1256,7 +1259,7 @@ declaration_list : declaration_list COMMA ID
                  		else // it exists already, so error
                  		{
                  			error++;
-                 			fprintf(errorout,"Error at line %d: multiple declaration of variable.\n", line_count);	
+                 			fprintf(errorout,"Error at line %d: Multiple declaration of %s\n", line_count, $1->getName().c_str());	
                  		}
 
                  	}
@@ -1288,7 +1291,7 @@ declaration_list : declaration_list COMMA ID
                  	if(var_type == "void")
                  	{
                  		semantic_error++;
-                 		fprintf(errorout,"Error at line %d: variable can't be of void type\n", line_count);
+                 		fprintf(errorout,"Error at line %d: Variable type cannot be void\n", line_count);
                  		//now we can't insert	
                  	}
                  	// but if variable type is not "void" we need to insert it into symboltable
@@ -1333,7 +1336,7 @@ variable : ID
 		  	if(temp == NULL)
 		  	{
 		  		semantic_error++;
-				fprintf(errorout, "Error at line %d: variable %s not declared in the current scope. \n",line_count, $1->getName().c_str());
+				fprintf(errorout, "Error at line %d: Undeclared variable %s \n",line_count, $1->getName().c_str());
 		  	}
 		  	else if (temp != NULL)
 		  	{
@@ -1361,7 +1364,7 @@ variable : ID
 		  	if ($3->getVarType() != "int" )
 		  	{
 		  		semantic_error++;
-				fprintf(errorout, "Error at line %d: Array index must be integer. \n",line_count);
+				fprintf(errorout, "Error at line %d: Expression inside third brackets not an integer \n",line_count);
 		  	}
 
 		  	// if id not declared before in the current scope. then semantic error
@@ -1371,7 +1374,7 @@ variable : ID
 		  	if(temp == NULL)
 		  	{
 		  		semantic_error++;
-				fprintf(errorout, "Error at line %d: variable %s not declared in the current scope. \n",line_count, $1->getName().c_str());
+				fprintf(errorout, "Error at line %d: Undeclared variable %s \n",line_count, $1->getName().c_str());
 		  	}
 		  	else if (temp != NULL)
 		  	{
@@ -1475,8 +1478,9 @@ expression : logic_expression
 				}
 				else if (temp == NULL)
 				{
-					semantic_error++;
-				    fprintf(errorout, "Error at line %d: variable %s not declared in the current scope. \n",line_count, $1->getName().c_str());
+					//maybe checked in the id section not needed here.
+					//semantic_error++;
+				    //fprintf(errorout, "Error at line %d: Undeclared variable %s \n",line_count, $1->getName().c_str());
 				}
 
 			}
@@ -1629,7 +1633,7 @@ simple_expression : term
 				 	SymbolInfo *s;
 				 	s = new SymbolInfo(term_name, "simple_expression");
 				 	$$ = s;
-
+					//fprintf(errorout, " $3 -- %s",$3->getVarType().c_str() ); 
 				 	if($1-> getVarType() == "int" && $3-> getVarType() == "int")
 				 	{
 				 		$$->setVarType("int");
@@ -1700,6 +1704,7 @@ term : unary_expression
 	 	// set variable type now
 
 	 	// if MULOP is 'mod' the full term will be integer
+
 	 	if($2->getName() == "%")
 	 	{
 	 		$$->setVarType("int");
@@ -1845,7 +1850,7 @@ factor :variable
 					{
 						//fprintf(errorout, "x->edgesize = %d args.size = %d\n",x->edge.size(),args.size());
 						semantic_error++;
-	 					fprintf(errorout, "Error at line %d: arguments number not matched \n",line_count );
+	 					fprintf(errorout, "Error at line %d: Total number of arguments mismatch in function %s \n",line_count, $1->getName().c_str() );
 
 					}
 					else //type mismatched of arguments passed
@@ -1856,7 +1861,8 @@ factor :variable
 							if (args[i]->getIdentity() == "variable")
 							{
 								semantic_error++;
-	 							fprintf(errorout, "Error at line %d: type mismatched of arguments \n",line_count );
+								//fprintf(errorout, " error\n",line_count );
+	 							fprintf(errorout, "Error at line %d: Type mismatch\n",line_count );
 	 							break;
 							}
 
@@ -1868,6 +1874,7 @@ factor :variable
 								if (x->getVarType() != temp->edge[i]->getVarType())
 								{
 									semantic_error++;
+									//fprintf(errorout, " error\n",line_count );
 	 								fprintf(errorout, "Error at line %d: type mismatched of arguments \n",line_count );
 	 								break;
 								}
