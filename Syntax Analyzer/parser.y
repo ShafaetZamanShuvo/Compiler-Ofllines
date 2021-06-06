@@ -974,6 +974,17 @@ statement : var_declaration
           {
           	cout<< "Line " <<line_count<<":"<< " statement : PRINTLN LPAREN ID RPAREN SEMICOLON" << endl << endl;
           	cout << "printf(" << $3->getName() << ");"<<endl << endl;
+			
+			SymbolInfo *s;
+			s= symtab.Lookup($3->getName());
+			if(s == NULL)
+			{
+				semantic_error++;
+				fprintf(errorout, "Error at line %d: Undeclared variable %s", line_count, $3->getName().c_str());
+			} 
+
+
+
           }
           | RETURN expression SEMICOLON
           {
@@ -1271,6 +1282,7 @@ declaration_list : declaration_list COMMA ID
                  | ID LTHIRD CONST_INT RTHIRD 
                  {
                  	var_name = $1->getName();
+					 
                  	bracket_material = $3->getName();
                  	size = stoi($3->getName());
                  	cout << size << endl << endl;
@@ -1454,7 +1466,7 @@ expression : logic_expression
 					{
 
 						semantic_error++;
-						fprintf(errorout, "Error at line %d: variable type is different on both side of ASSIGNOP. \n",line_count);
+						fprintf(errorout, "Error at line %d: Type mismatch\n",line_count);
 					}
 
 					if(temp->getIdentity() != "array")
@@ -1705,6 +1717,8 @@ term : unary_expression
 
 	 	// if MULOP is 'mod' the full term will be integer
 
+		
+
 	 	if($2->getName() == "%")
 	 	{
 	 		$$->setVarType("int");
@@ -1722,17 +1736,24 @@ term : unary_expression
 	 	// mod can only be happened between two integers
 
 	 	if($2-> getName() == "%")
+
 	 	{
-	 		if($1->getVarType() != "int")
+			 if($3->getName() == "0" ||$1->getName() == "0" )
 	 		{
 	 			semantic_error++;
-	 			fprintf(errorout, "Error at line %d: MOD is only possible between integers. \n",line_count );
+	 			fprintf(errorout, "Error at line %d: Modulus by Zero\n",line_count );
+	 		}
+
+	 		else if($1->getVarType() != "int")
+	 		{
+	 			semantic_error++;
+	 			fprintf(errorout, "Error at line %d: Non-Integer operand on modulus operator \n",line_count );
 	 		}
 	 		else if($3-> getVarType() != "int" )
 	 		{
 	 			
 	 			semantic_error++;
-	 			fprintf(errorout, "Error at line %d: MOD is only possible between integers. \n",line_count );
+	 			fprintf(errorout, "Error at line %d: Non-Integer operand on modulus operator \n",line_count );
 	 		
 	 		}
 	 	}
@@ -1833,7 +1854,7 @@ factor :variable
 			{
 				$$->setVarType("func_not_found");
 				semantic_error++;
-	 			fprintf(errorout, "Error at line %d: function named not defined \n",line_count );
+	 			fprintf(errorout, "Error at line %d: Undeclared function %s\n",line_count, $1->getName().c_str() );
 			}
 			else if(x != NULL)
 			{
