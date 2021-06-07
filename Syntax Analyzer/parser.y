@@ -388,7 +388,7 @@ func_definition : type_specifier ID LPAREN parameter_list RPAREN {id++; symtab.e
 				{
 
 					cout<< endl;
-					symtab.PrintAllScope();
+					//symtab.PrintAllScope();
 					cout<< "Line " <<line_count<<":"<< " func_definition : type_specifier ID LPAREN  parameter_list RPAREN compound_statement " << endl << endl;
 
 					code_segment = $1->getType() + " " + $2->getName() + "(";
@@ -572,7 +572,7 @@ func_definition : type_specifier ID LPAREN parameter_list RPAREN {id++; symtab.e
 				}
 				| type_specifier ID LPAREN RPAREN {id++; symtab.enterScope(bucket,id); scopeParameters();} compound_statement
 				{
-					symtab.PrintAllScope();
+					//symtab.PrintAllScope();
 
 					cout<< "Line " <<line_count<<":"<< " func_definition : type_specifier ID LPAREN RPAREN compound_statement " << endl << endl;
 
@@ -853,14 +853,14 @@ parameter_list :parameter_list COMMA type_specifier ID
 compound_statement : LCURL statements RCURL
 				   {
 				   	 cout<< "Line " <<line_count<<":"<< " compound_statement : LCURL statements RCURL" << endl << endl;
-				   	 statements_name = "{";
+				   	 statements_name = "{\n";
 
 				   	 size = $2->edge.size();
 				   	 for (int i = 0; i < size; ++i)
 				   	 {
 				   	 	if(i == size -1)
 				   	 	{
-				   	 		statements_name += $2->edge[i]->getName() + "}" + "\n" ;
+				   	 		statements_name += $2->edge[i]->getName() + "\n}" + "\n" ;
 				   	 	}
 				   	 	else{
 				   	 		statements_name += $2->edge[i]->getName()+"\n";
@@ -868,6 +868,8 @@ compound_statement : LCURL statements RCURL
 				   	 }
 
 				   	 cout << statements_name << endl << endl;
+
+						symtab.PrintAllScope();
 
 				   	 SymbolInfo *s;
 				   	 s= new SymbolInfo(statements_name, "compound_statement");
@@ -971,7 +973,7 @@ statement : var_declaration
           {
           	cout<< "Line " <<line_count<<":"<< " statement : IF LPAREN expression RPAREN statement  ELSE statement" << endl << endl;
 
-          	conditional_statement = "if(" + $3->getName() + ")" + $5->getName() + "else" + $7->getName();
+          	conditional_statement = "if(" + $3->getName() + ")" + $5->getName() + "else\n"  + $7->getName();
 
           	SymbolInfo *s;
           	s = new SymbolInfo(conditional_statement, "statement");
@@ -997,6 +999,8 @@ statement : var_declaration
           {
           	cout<< "Line " <<line_count<<":"<< " statement : PRINTLN LPAREN ID RPAREN SEMICOLON" << endl << endl;
           	cout << "printf(" << $3->getName() << ");"<<endl << endl;
+			  string print_statement;
+			  print_statement = "printf("+$3->getName()+");";
 			
 			SymbolInfo *s;
 			s= symtab.Lookup($3->getName());
@@ -1007,6 +1011,9 @@ statement : var_declaration
 				cout << "Error at line " << line_count <<":" <<" Undeclared variable "<< $3->getName() <<endl <<endl;
 			} 
 
+			SymbolInfo *x;
+          	x= new SymbolInfo(print_statement, "statement");
+          	$$ = x;
 
 
           }
@@ -1995,7 +2002,7 @@ factor :variable
 	   	 $$->setVarType("float");
 
 	   	 cout<< "Line " <<line_count<<":"<< " factor : CONST_FLOAT " << endl << endl;
-	   	 float_name = $1->getName();
+	   	 float_name = $1->getName() ;
 
 	   	 cout << float_name <<endl << endl;
 	   }
