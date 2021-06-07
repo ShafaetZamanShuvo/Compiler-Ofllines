@@ -135,7 +135,7 @@ void scopeParameters()
 		else
 		{
 			semantic_error++;
-			fprintf(errorout, "Error at line %d: Multiple declaration of %s\n", line_count, parameters[i]->getName().c_str() );
+			fprintf(errorout, "Error at line %d: Multiple declaration of %s\n\n", line_count, parameters[i]->getName().c_str() );
 			cout << "Error at line "<< line_count << ":" << " Multiple declaration of "<< parameters[i]->getName() <<endl <<endl;
 		}
 	}
@@ -435,7 +435,7 @@ func_definition : type_specifier ID LPAREN parameter_list RPAREN {id++; symtab.e
 						if ($1->getType() == "void")
 						{
 							semantic_error++;
-							fprintf(errorout,"Error at line %d: type_specifier is of type void, can't have return status\n", line_count);
+							fprintf(errorout,"Error at line %d: type_specifier is of type void, can't have return status\n\n", line_count);
 							cout << "Error at line " << line_count << ":" << " type_specifier is of type void, can't have return status"<< endl << endl;
 						}
 					}
@@ -453,10 +453,10 @@ func_definition : type_specifier ID LPAREN parameter_list RPAREN {id++; symtab.e
 					if(return_type != $1->getType())
 					{
 						semantic_error++;
-						//fprintf(errorout, "\n found error here \n" );
-						//fprintf(errorout, "\n  %s  \n",return_type.c_str() );
-						//fprintf(errorout, "\n  %s  \n",$1->getType().c_str() );
-						fprintf(errorout,"Error at line %d: mismatch of return type\n", line_count);
+						//fprintf(errorout, "\n found error here \n\n" );
+						//fprintf(errorout, "\n  %s  \n\n",return_type.c_str() );
+						//fprintf(errorout, "\n  %s  \n\n",$1->getType().c_str() );
+						fprintf(errorout,"Error at line %d: mismatch of return type\n\n", line_count);
 						cout << "Error at line no "<< line_count << ":" << " Return type mismatched" << endl <<endl;
 					}
 
@@ -471,7 +471,7 @@ func_definition : type_specifier ID LPAREN parameter_list RPAREN {id++; symtab.e
 						if (x->getIdentity() != "function_declaration")
 						{
 							semantic_error++;
-							fprintf(errorout,"Error at line %d: Multiple declaration of %s\n", line_count, $2->getName().c_str());
+							fprintf(errorout,"Error at line %d: Multiple declaration of %s\n\n", line_count, $2->getName().c_str());
 							cout << "Error at line "<< line_count << ":" << "Multiple declaration of "<< $2->getName() <<endl <<endl;
 						}
 						else
@@ -480,7 +480,7 @@ func_definition : type_specifier ID LPAREN parameter_list RPAREN {id++; symtab.e
 							if (x->edge.size() != $4->edge.size())
 							{
 								semantic_error++;
-								fprintf(errorout,"Error at line %d: Total number of arguments mismatch with declaration in function %s\n", line_count,$2->getName().c_str());
+								fprintf(errorout,"Error at line %d: Total number of arguments mismatch with declaration in function %s\n\n", line_count,$2->getName().c_str());
 								cout << "Error at line "<< line_count << ":" << " Total number of arguments mismatch with declaration in function "<< $2->getName() << endl <<endl;
 
 							}
@@ -528,7 +528,7 @@ func_definition : type_specifier ID LPAREN parameter_list RPAREN {id++; symtab.e
 									else
 									{
 										semantic_error++;
-										fprintf(errorout,"Error at line %d: Return type mismatch with function declaration in function %s\n", line_count, $2->getName().c_str());
+										fprintf(errorout,"Error at line %d: Return type mismatch with function declaration in function %s\n\n", line_count, $2->getName().c_str());
 										cout <<"Error at line " << line_count <<" Return type mismatch with function declaration in function " <<$2->getName() << endl;
 										
 									}
@@ -604,8 +604,8 @@ func_definition : type_specifier ID LPAREN parameter_list RPAREN {id++; symtab.e
 						if ($1->getType() == "void")
 						{
 							semantic_error++;
-							fprintf(errorout,"Error at line %d: type_specifier is of type void, can't have return status\n", line_count);
-							cout << "Error at line " << line_count <<":" <<"type_specifier is of type void, can't have return status\n" <<endl;
+							fprintf(errorout,"Error at line %d: type_specifier is of type void, can't have return status\n\n", line_count);
+							cout << "Error at line " << line_count <<":" <<"type_specifier is of type void, can't have return status\n\n" <<endl;
 							
 						}
 					}
@@ -615,7 +615,7 @@ func_definition : type_specifier ID LPAREN parameter_list RPAREN {id++; symtab.e
 						{
 							semantic_error++;
 							fprintf(errorout,"Error at line %d: type_specifier is not of type void, but missing return status", line_count);
-							cout << "Error at line " << line_count <<":" <<"type_specifier is not of type void, but missing status\n" <<endl;
+							cout << "Error at line " << line_count <<":" <<"type_specifier is not of type void, but missing status\n\n" <<endl;
 						}
 					}
 					
@@ -631,7 +631,7 @@ func_definition : type_specifier ID LPAREN parameter_list RPAREN {id++; symtab.e
 						if (x->getIdentity() != "function_declaration")
 						{
 							semantic_error++;
-							fprintf(errorout,"Error at line %d: Multiple declaration of %s\n", line_count, $2->getName().c_str());
+							fprintf(errorout,"Error at line %d: Multiple declaration of %s\n\n", line_count, $2->getName().c_str());
 							cout << "Error at line " << line_count <<":" <<" Multiple declaration of " << $2->getName()<<endl <<endl;
 						}
 						else
@@ -640,7 +640,7 @@ func_definition : type_specifier ID LPAREN parameter_list RPAREN {id++; symtab.e
 							if (x->edge.size()>0)
 							{
 								semantic_error++;
-								fprintf(errorout,"Error at line %d: Total number of arguments mismatch with declaration in function %s\n", line_count,$2->getName().c_str());
+								fprintf(errorout,"Error at line %d: Total number of arguments mismatch with declaration in function %s\n\n", line_count,$2->getName().c_str());
 								cout << "Error at line " << line_count <<":" <<" Total numer of arguments mismatch with declaration in function "<< $2->getName() <<endl <<endl;
 							}
 							else
@@ -662,7 +662,7 @@ func_definition : type_specifier ID LPAREN parameter_list RPAREN {id++; symtab.e
 									else
 									{
 										semantic_error++;
-										fprintf(errorout,"Error at line %d: Return type mismatch with function declaration in function %s\n", line_count,$2->getName().c_str());
+										fprintf(errorout,"Error at line %d: Return type mismatch with function declaration in function %s\n\n", line_count,$2->getName().c_str());
 										cout << "Error at line " << line_count <<":" <<" Return type mismatch with declaration in function "<< $2->getName() <<endl <<endl;
 									}	
 							}
@@ -853,17 +853,17 @@ parameter_list :parameter_list COMMA type_specifier ID
 compound_statement : LCURL statements RCURL
 				   {
 				   	 cout<< "Line " <<line_count<<":"<< " compound_statement : LCURL statements RCURL" << endl << endl;
-				   	 statements_name = "{\n";
+				   	 statements_name = "{\n\n";
 
 				   	 size = $2->edge.size();
 				   	 for (int i = 0; i < size; ++i)
 				   	 {
 				   	 	if(i == size -1)
 				   	 	{
-				   	 		statements_name += $2->edge[i]->getName() + "\n}" + "\n" ;
+				   	 		statements_name += $2->edge[i]->getName() + "\n}" + "\n\n" ;
 				   	 	}
 				   	 	else{
-				   	 		statements_name += $2->edge[i]->getName()+"\n";
+				   	 		statements_name += $2->edge[i]->getName()+"\n\n";
 				   	 	}
 				   	 }
 
@@ -973,7 +973,7 @@ statement : var_declaration
           {
           	cout<< "Line " <<line_count<<":"<< " statement : IF LPAREN expression RPAREN statement  ELSE statement" << endl << endl;
 
-          	conditional_statement = "if(" + $3->getName() + ")" + $5->getName() + "else\n"  + $7->getName();
+          	conditional_statement = "if(" + $3->getName() + ")" + $5->getName() + "else\n\n"  + $7->getName();
 
           	SymbolInfo *s;
           	s = new SymbolInfo(conditional_statement, "statement");
@@ -1173,7 +1173,7 @@ declaration_list : declaration_list COMMA ID
                  	if(var_type == "void")
                  	{
                  		semantic_error++;
-                 		fprintf(errorout,"Error at line %d: Variable type cannot be void\n", line_count);
+                 		fprintf(errorout,"Error at line %d: Variable type cannot be void\n\n", line_count);
 						 cout << "Error at line " << line_count <<":" <<" Variable type cannon be void " <<endl <<endl;
                  		//now we can't insert	
                  	}
@@ -1196,8 +1196,8 @@ declaration_list : declaration_list COMMA ID
                  		
                  		else // it exists already, so error
                  		{
-                 			error++;
-                 			fprintf(errorout,"Error at line %d: Multiple declaration of %s\n", line_count, $3->getName().c_str());	
+                 			semantic_error++;
+                 			fprintf(errorout,"Error at line %d: Multiple declaration of %s\n\n", line_count, $3->getName().c_str());	
 							 cout << "Error at line " << line_count <<":" <<" Multiple declaration of "<< $3->getName() <<endl <<endl;
                  		}
 
@@ -1258,8 +1258,8 @@ declaration_list : declaration_list COMMA ID
                  		
                  		else// it exists already, so error
                  		{
-                 			error++;
-                 			fprintf(errorout,"Error at line %d: Multiple declaration of %s\n", line_count, $3->getName().c_str());	
+                 			semantic_error++;
+                 			fprintf(errorout,"Error at line %d: Multiple declaration of %s\n\n", line_count, $3->getName().c_str());	
 							 cout << "Error at line " << line_count <<":" <<" Multiple declaration of "<< $3->getName() <<endl <<endl;
                  		}
                  	}
@@ -1282,7 +1282,7 @@ declaration_list : declaration_list COMMA ID
                  	if(var_type == "void")
                  	{
                  		semantic_error++;
-                 		fprintf(errorout,"Error at line %d: Variable type cannot be void.\n", line_count);
+                 		fprintf(errorout,"Error at line %d: Variable type cannot be void.\n\n", line_count);
 						 cout << "Error at line " << line_count <<":" <<" variable type cannot be void"<<endl <<endl;
                  		//now we can't insert	
                  	}
@@ -1305,8 +1305,8 @@ declaration_list : declaration_list COMMA ID
                  		
                  		else // it exists already, so error
                  		{
-                 			error++;
-                 			fprintf(errorout,"Error at line %d: Multiple declaration of %s\n", line_count, $1->getName().c_str());
+                 			semantic_error++;
+                 			fprintf(errorout,"Error at line %d: Multiple declaration of %s\n\n", line_count, $1->getName().c_str());
 							 cout << "Error at line " << line_count <<":" <<" Multiple declaration of "<< $1->getName() <<endl <<endl;	
                  		}
 
@@ -1340,7 +1340,7 @@ declaration_list : declaration_list COMMA ID
                  	if(var_type == "void")
                  	{
                  		semantic_error++;
-                 		fprintf(errorout,"Error at line %d: Variable type cannot be void\n", line_count);
+                 		fprintf(errorout,"Error at line %d: Variable type cannot be void\n\n", line_count);
 						 cout << "Error at line " << line_count <<":" <<" Variable type cannot be void "<<endl <<endl;
 						
                  		//now we can't insert	
@@ -1387,7 +1387,7 @@ variable : ID
 		  	if(temp == NULL)
 		  	{
 		  		semantic_error++;
-				fprintf(errorout, "Error at line %d: Undeclared variable %s \n",line_count, $1->getName().c_str());
+				fprintf(errorout, "Error at line %d: Undeclared variable %s \n\n",line_count, $1->getName().c_str());
 				cout << "Error at line " << line_count <<":" <<" Undeclared variable "<< $1->getName() <<endl <<endl;
 		  	}
 		  	else if (temp != NULL)
@@ -1416,7 +1416,7 @@ variable : ID
 		  	if ($3->getVarType() != "int" )
 		  	{
 		  		semantic_error++;
-				fprintf(errorout, "Error at line %d: Expression inside third brackets not an integer \n",line_count);
+				fprintf(errorout, "Error at line %d: Expression inside third brackets not an integer \n\n",line_count);
 				cout << "Error at line " << line_count <<":" <<" Expression inside third brackets not an integer "<<endl <<endl;
 		  	}
 
@@ -1427,7 +1427,7 @@ variable : ID
 		  	if(temp == NULL)
 		  	{
 		  		semantic_error++;
-				fprintf(errorout, "Error at line %d: Undeclared variable %s \n",line_count, $1->getName().c_str());
+				fprintf(errorout, "Error at line %d: Undeclared variable %s \n\n",line_count, $1->getName().c_str());
 				cout << "Error at line " << line_count <<":" <<" Undeclared variable "<< $1->getName() <<endl <<endl;
 		  	}
 		  	else if (temp != NULL)
@@ -1508,7 +1508,7 @@ expression : logic_expression
 					{
 
 						semantic_error++;
-						fprintf(errorout, "Error at line %d: Type mismatch\n",line_count);
+						fprintf(errorout, "Error at line %d: Type mismatch\n\n",line_count);
 						cout << "Error at line " << line_count <<":" <<" Type mismatch " <<endl <<endl;
 					}
 
@@ -1517,7 +1517,7 @@ expression : logic_expression
 						if($1->size != 0)
 						{
 							semantic_error++;
-							fprintf(errorout, "Error at line %d: variable %s Array Index Error. \n",line_count, $1->getName().c_str());
+							fprintf(errorout, "Error at line %d: variable %s Array Index Error. \n\n",line_count, $1->getName().c_str());
 							cout << "Error at line " << line_count <<":" <<" variable "<< $1->getName() << " Array Index Error" <<endl <<endl;
 						}
 					}
@@ -1526,7 +1526,7 @@ expression : logic_expression
 						if ($1->getIdentity() != "array")
 						{
 							semantic_error++;
-							fprintf(errorout, "Error at line %d: variable %s Array Index Error. \n",line_count, $1->getName().c_str());
+							fprintf(errorout, "Error at line %d: variable %s Array Index Error. \n\n",line_count, $1->getName().c_str());
 							cout << "Error at line " << line_count <<":" <<" variable "<< $1->getName() << " Array Index Error" <<endl <<endl;
 						}
 					}
@@ -1537,7 +1537,7 @@ expression : logic_expression
 				{
 					//checked in the id section not needed here.
 					//semantic_error++;
-				    //fprintf(errorout, "Error at line %d: Undeclared variable %s \n",line_count, $1->getName().c_str());
+				    //fprintf(errorout, "Error at line %d: Undeclared variable %s \n\n",line_count, $1->getName().c_str());
 				}
 
 			}
@@ -1549,7 +1549,15 @@ logic_expression : rel_expression
 				 	$$ = $1;
 				  	cout<< "Line " << line_count << ": logic_expression : rel_expression" << endl << endl;
 				  	rel_expression_name = $1->getName();
-				  	cout << rel_expression_name << endl << endl;
+					    if($1->getIdentity() == "array")
+					{
+						cout << rel_expression_name <<"["<< $1->size << "]"<<endl << endl;
+					} 
+					else
+					{
+						cout << rel_expression_name <<endl << endl;
+					}
+				  	//cout << rel_expression_name << endl << endl;
 				 }
 				 | rel_expression LOGICOP rel_expression
 				 {
@@ -1568,13 +1576,13 @@ logic_expression : rel_expression
 					if ($1->getVarType() != "int")
 					{
 						semantic_error++;
-						fprintf(errorout, "Error at line %d: %s is only possible between integers. \n",line_count, $2->getName().c_str() );
+						fprintf(errorout, "Error at line %d: %s is only possible between integers. \n\n",line_count, $2->getName().c_str() );
 						cout << "Error at line " << line_count <<":" <<" "<< $2->getName() << " is only possible between integers" <<endl <<endl;
 					}
 					else if ($3->getVarType() != "int")
 					{
 						semantic_error++;
-						fprintf(errorout, "Error at line %d: %s is only possible between integers. \n",line_count, $2->getName().c_str() );
+						fprintf(errorout, "Error at line %d: %s is only possible between integers. \n\n",line_count, $2->getName().c_str() );
 						cout << "Error at line " << line_count <<":" <<" "<< $2->getName() << " is only possible between integers" <<endl <<endl;
 
 					}
@@ -1586,7 +1594,15 @@ rel_expression : simple_expression
 					$$ = $1;
 				  	cout<< "Line " << line_count << ": rel_expression : simple_expression" << endl << endl;
 				  	simple_expression_name = $1->getName();
-				  	cout << simple_expression_name << endl << endl;
+					    if($1->getIdentity() == "array")
+					{
+						cout << simple_expression_name<<"["<< $1->size << "]"<<endl << endl;
+					} 
+					else
+					{
+						cout << simple_expression_name <<endl << endl;
+					}
+				  	//cout << simple_expression_name << endl << endl;
 				}
 				| simple_expression RELOP simple_expression
 				{
@@ -1627,14 +1643,14 @@ rel_expression : simple_expression
 					{
 						semantic_error++;
 						
-						fprintf(errorout, "Error at line %d: %s is only possible between integers or floats. \n",line_count, $2->getName().c_str() );
+						fprintf(errorout, "Error at line %d: %s is only possible between integers or floats. \n\n",line_count, $2->getName().c_str() );
 						cout << "Error at line " << line_count <<":" <<" "<< $2->getName() << " is only possible between integers" <<endl <<endl;
 					}
 					else if (($3->getVarType() == "int" | $3->getVarType() == "float" ) && ($1->getVarType() == "char"))
 					{
 						semantic_error++;
 						
-						fprintf(errorout, "Error at line %d: %s is only possible between integers or floats. \n",line_count, $2->getName().c_str() );
+						fprintf(errorout, "Error at line %d: %s is only possible between integers or floats. \n\n",line_count, $2->getName().c_str() );
 						cout << "Error at line " << line_count <<":" <<" "<< $2->getName() << " is only possible between integers" <<endl <<endl;
 
 					}
@@ -1790,21 +1806,21 @@ term : unary_expression
 			 if($3->getName() == "0" ||$1->getName() == "0" )
 	 		{
 	 			semantic_error++;
-	 			fprintf(errorout, "Error at line %d: Modulus by Zero\n",line_count );
+	 			fprintf(errorout, "Error at line %d: Modulus by Zero\n\n",line_count );
 				 cout << "Error at line " << line_count <<":" <<" Modulus by Zero" <<endl <<endl;
 	 		}
 
 	 		else if($1->getVarType() != "int")
 	 		{
 	 			semantic_error++;
-	 			fprintf(errorout, "Error at line %d: Non-Integer operand on modulus operator \n",line_count );
+	 			fprintf(errorout, "Error at line %d: Non-Integer operand on modulus operator \n\n",line_count );
 				  cout << "Error at line " << line_count <<":" <<" Non-Integer operand on modulus operator" <<endl <<endl;
 	 		}
 	 		else if($3-> getVarType() != "int" )
 	 		{
 	 			
 	 			semantic_error++;
-	 			fprintf(errorout, "Error at line %d: Non-Integer operand on modulus operator \n",line_count );
+	 			fprintf(errorout, "Error at line %d: Non-Integer operand on modulus operator \n\n",line_count );
 				  cout << "Error at line " << line_count <<":" <<" Non-Integer operand on modulus operator" <<endl <<endl;
 	 		
 	 		}
@@ -1892,11 +1908,30 @@ factor :variable
 		| ID LPAREN argument_list RPAREN
 		{
 			cout<< "Line " <<line_count<<":"<< " factor : ID LPAREN argument_list RPAREN " << endl << endl;
-			cout<< $1->getName() << "("<< $3->getName() <<")" << endl << endl;
+			if($3->getIdentity()=="array")
+			{
+				cout<< $1->getName() << "("<< $3->getName() << "["<< $3->size <<"]" <<")" << endl << endl;
+			}
+			else
+			{
+				cout<< $1->getName() << "("<< $3->getName() <<")" << endl << endl;
+			}
+			
 
 			SymbolInfo *s;
-			s = new SymbolInfo($1->getName() + "(" + $3->getName() + ")", "factor");
+
+			if($3->getIdentity() == "array")
+			{
+				string a = $1->getName() + "(" + $3->getName() +"[" + int2s($3->size) +"])";
+				s = new SymbolInfo(a, "factor");
+			}
+			else
+			{
+					s = new SymbolInfo($1->getName() + "(" + $3->getName() + ")", "factor");
+			}
+			
 			$$ = s;
+			
 			//semantic error check
 
 			SymbolInfo *x;
@@ -1906,15 +1941,15 @@ factor :variable
 			{
 				$$->setVarType("func_not_found");
 				semantic_error++;
-	 			fprintf(errorout, "Error at line %d: Undeclared function %s\n",line_count, $1->getName().c_str() );
-				  cout << "Error at line " << line_count <<":" <<" Undeclared function " <<$1->getName()<<endl <<endl;
+	 			fprintf(errorout, "Error at line %d: Undeclared function %s\n\n",line_count, $1->getName().c_str() );
+				cout << "Error at line " << line_count <<":" <<" Undeclared function " <<$1->getName()<<endl <<endl;
 			}
 			else if(x != NULL)
 			{
 				current_ret_type = x->getRetType();
 				$$->setVarType(current_ret_type);
 			}
-
+/*
 			if(x != NULL)
 			{
 				if (x->getIdentity() == "func_defined")
@@ -1922,43 +1957,47 @@ factor :variable
 					//size mismatch of arguments passed
 					if (x->edge.size() != args.size())
 					{
-						//fprintf(errorout, "x->edgesize = %d args.size = %d\n",x->edge.size(),args.size());
+						//fprintf(errorout, "x->edgesize = %d args.size = %d\n\n",x->edge.size(),args.size());
 						semantic_error++;
-	 					fprintf(errorout, "Error at line %d: Total number of arguments mismatch in function %s \n",line_count, $1->getName().c_str() );
+	 					fprintf(errorout, "Error at line %d: Total number of arguments mismatch in function %s \n\n",line_count, $1->getName().c_str() );
 						  cout << "Error at line " << line_count <<":" <<" Total number of arguments mismatch in function " << $1->getName() <<endl <<endl;
 
 					}
-					else //type mismatched of arguments passed
+					//type mismatched of arguments passed
+					else 
 					{
 						size = x->edge.size();
 						for (int i = 0; i < size; ++i)
 						{
-							if (args[i]->getIdentity() == "variable")
-							{
-								semantic_error++;
-								//fprintf(errorout, " error\n",line_count );
-	 							fprintf(errorout, "Error at line %d: Type mismatch\n",line_count );
-								  cout << "Error at line " << line_count <<":" <<" Type mismatch" <<endl <<endl;
-	 							break;
-							}
-
 							SymbolInfo *temp;
 							temp = symtab.Lookup(args[i]->getName());
 
-							if(temp != NULL)
+							if(temp == NULL)
+							{
+								if (args[i]->getIdentity() == "variable")
+								{
+								semantic_error++;
+								cout << "problem" <<endl;
+								//fprintf(errorout, " error\n\n",line_count );
+	 							fprintf(errorout, "Error at line %d: Type mismatch\n\n",line_count );
+								  cout << "Error at line " << line_count <<":" <<" Type mismatch" <<endl <<endl;
+	 							break;
+								}
+							}
+							else
 							{
 								if (x->getVarType() != temp->edge[i]->getVarType())
 								{
 									semantic_error++;
-									//fprintf(errorout, " error\n",line_count );
-	 								fprintf(errorout, "Error at line %d: type mismatched of arguments \n",line_count );
+									//fprintf(errorout, " error\n\n",line_count );
+	 								fprintf(errorout, "Error at line %d: type mismatched of arguments \n\n",line_count );
 									  cout << "Error at line " << line_count <<":" <<" Type mismatched of arguments" <<endl <<endl;
 	 								break;
 								}
 								else if (x->size != temp->edge[i]->size)
 								{
 									semantic_error++;
-	 								fprintf(errorout, "Error at line %d: more or less arguments \n",line_count );
+	 								fprintf(errorout, "Error at line %d: more or less arguments \n\n",line_count );
 									  cout << "Error at line " << line_count <<":" <<" More of Less arguments" <<endl <<endl;
 	 								break;
 								}
@@ -1970,7 +2009,7 @@ factor :variable
 				}
 			}
 			args.clear();
-
+*/
 		}
         | LPAREN expression RPAREN
 		{
@@ -2065,7 +2104,15 @@ argument_list : arguments
 
 			  	 cout<< "Line " <<line_count<<":"<< " argument_list : arguments" << endl << endl;
 			  	 arguments_name = $1->getName();
-			  	 cout << arguments_name << endl << endl;
+				     if($1->getIdentity() == "array")
+					{
+						cout << arguments_name <<"["<< $1->size << "]"<<endl << endl;
+					} 
+					else
+					{
+						cout << arguments_name <<endl << endl;
+					}
+			  	 //cout << arguments_name << endl << endl;
 			  }	 
 			  |
 			  {
@@ -2096,7 +2143,15 @@ arguments : arguments COMMA logic_expression
 
 		  	logic_name = $1->getName();
 		  	cout<< "Line " <<line_count<<":"<< " arguments: logic_expression" << endl << endl;
-		  	cout << logic_name << endl << endl;
+			    if($1->getIdentity() == "array")
+					{
+						cout << logic_name <<"["<< $1->size << "]"<<endl << endl;
+					} 
+					else
+					{
+						cout << logic_name <<endl << endl;
+					}
+		  	//cout << logic_name << endl << endl;
 
 
 		  }
@@ -2107,13 +2162,13 @@ int main(int argc,char *argv[])
 {
 
 	if(argc!=2){
-		printf("Please provide input file name and try again\n");
+		printf("Please provide input file name and try again\n\n");
 		return 0;
 	}
 	
 	FILE *fin=fopen(argv[1],"r");
 	if(fin==NULL){
-		printf("Cannot open specified file\n");
+		printf("Cannot open specified file\n\n");
 		return 0;
 	}
 	
@@ -2130,7 +2185,7 @@ int main(int argc,char *argv[])
 	cout << "Total lines: "<<line_count<<endl<< "Total errors: "<<semantic_error <<endl;
 
 
-   // fprintf(errorout, "\n Total errors : %d \n", semantic_error );
+   // fprintf(errorout, "\n Total errors : %d \n\n", semantic_error );
 	
 	fclose(yyin);
 	
