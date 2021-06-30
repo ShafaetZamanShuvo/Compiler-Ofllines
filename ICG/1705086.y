@@ -22,7 +22,7 @@ int semantic_error = 0;
 int bucket = 30;
 int id = 1;
 string asmcodes;
-vector<pair<string,string>>  variableListInitialize;
+vector<pair<string,string>>  variableListInitialize; //sesh e "normal id" paile seta normal id, na hole array
 SymbolTable symtab(bucket,id,NULL);
 
 int return_status = 0;
@@ -160,7 +160,7 @@ string newTemp()
 {
 	string temp;
 	temp = "T"+int2s(newTempCount);
-	variableListInitialize.push_back({temp,"0"});
+	variableListInitialize.push_back({temp,"normal id"});
 	newTempCount++;
 	return temp;
 }
@@ -209,6 +209,8 @@ string newTemp()
 %type<symbol> statement
 %type<symbol> statements
 %type<symbol> compound_statement
+%type<symbol> start
+%type<symbol> program
 
 
 
@@ -235,6 +237,83 @@ start : program
 		// 	cout << code_list[i]<<endl << endl;
 		// }
 		symtab.PrintAllScope();
+
+		//########### assembly ######################
+
+		if(semantic_error == 0)
+		{
+			$$= $1;
+
+		string initcode;
+		initcode = ".MODEL SMALL\n.STACK 100H\n.DATA\n";
+
+		//now declare variables
+
+		int size;
+		size = variableListInitialize.size();
+
+		cout << size << endl;
+
+		for(int i = 0; i<size ; i++)
+		{
+			if(variableListInitialize[i].second == "normal id")
+			{
+				initcode += variableListInitialize[i].first + " DW ?\n";
+			}
+			else
+			{
+				initcode += variableListInitialize[i].first + " DW " +variableListInitialize[i].second + " DUP(?)\n";
+			}
+		}
+
+		//cout << initcode << endl;
+
+		initcode += "COUNT DW 0D\n\n";
+
+		initcode += ".CODE\n";
+
+		//write print code
+
+		initcode += "OUTEDC PROC\n\n";
+		initcode += "PUSH AX\nPUSH BX\nPUSH CX\nPUSH DX\n\n";
+		initcode +=  "CMP AX, 0D\n";
+		initcode += "JGE @PLUS2\n\n";
+		initcode += "PUSH AX\n\n";
+		initcode += "MOV AH, 2\nMOV DL, '-'\nINT 21H\n\n";
+		initcode += "POP AX\nNEG AX\n\n";
+		initcode += "@PLUS2:\n";
+		initcode += "MOV CX, COUNT\n";
+		initcode += "MOV BX, 10D\n\n";
+		initcode += "@REPEAT:\n";
+		initcode += "XOR DX, DX\n";
+		initcode += "DIV BX\n";
+		initcode += "PUSH DX\n";
+		initcode += "INC CX\n";
+		initcode += "CMP AX, 0D\n";
+		initcode += "JNE @REPEAT\n";
+		initcode += "\n MOV AH,2\n\n";
+		initcode += "@PRINT:\n";
+		initcode += "POP DX\n";
+		initcode += "ADD DL, 30H\n";
+		initcode += "INT 21H\n";
+		initcode += "LOOP @PRINT\n\n";
+		initcode += "POP DX\nPOP CX\nPOP BX\nPOP AX\n";
+		initcode += "RET\nOUTEDC ENDP\n\n";
+		
+		initcode += "NEWLINE PROC\n";
+		initcode += "MOV AH, 2\nMOV DL,10\nINT 21H\nMOV AH, 2\nMOV DL, 13\nINT 21H\n";
+		initcode += "RET\nNEWLINE ENDP\n\n";
+
+		cout << initcode <<endl;
+		cout << $1->getCode() <<endl;
+
+
+		fprintf(asmcode, "%s", initcode.c_str());
+		fprintf(asmcode, "%s", $1->getCode().c_str());
+
+		}
+
+		//############################################
 	  }
 	  ;
 
@@ -256,6 +335,8 @@ program : program unit
 
 			cout<< "Line " <<line_count<<":"<< " program : unit " << endl << endl;
 			cout<< unit_name << endl << endl;
+
+			$$ = $1;
 		}	
 	   ;
 	
@@ -269,6 +350,8 @@ unit : var_declaration
 
 	 	cout<< "Line " <<line_count<<":"<< " unit : var_declaration " << endl << endl;
 	 	cout<< var_declaration_name << endl << endl;
+
+		 $$ = $1;
 
 
 	 }
@@ -285,6 +368,8 @@ unit : var_declaration
 	 	cout<< "Line " <<line_count<<":"<< " unit : func_declaration " << endl << endl;
 	 	cout<< func_declaration_name << endl << endl;
 
+		 $$ = $1;
+
 	 }
 	 | func_definition
 	 {
@@ -297,6 +382,8 @@ unit : var_declaration
 
 	 	cout<< "Line " <<line_count<<":"<< " unit : func_definition " << endl << endl;
 	 	cout<< func_definition_name<< endl << endl;
+
+		 $$ = $1;
 	 }
 	 
      ;
@@ -410,6 +497,15 @@ func_definition : type_specifier ID LPAREN parameter_list RPAREN {id++; symtab.s
 				{
 
 					cout<< endl;
+					//#######################################
+					asmcodes = $2->getName() + " PROC\n";
+					asmcodes += "PUSH AX\nPUSH BX\nPUSH CX\nPUSH DX\n";
+					asmcodes += $7->getCode() + "\n";
+					asmcodes += "POP AX\nPOP BX\nPOP CX\nPOP DX\n";
+					asmcodes += "RET\n";
+					asmcodes += $2->getName() + " ENDP\n";
+
+					//###########################################
 					//symtab.PrintAllScope();
 					cout<< "Line " <<line_count<<":"<< " func_definition : type_specifier ID LPAREN  parameter_list RPAREN compound_statement " << endl << endl;
 
@@ -435,6 +531,8 @@ func_definition : type_specifier ID LPAREN parameter_list RPAREN {id++; symtab.s
 					s= new SymbolInfo(code_segment, "func_definition");
 					$$=s;
 
+					$$->setCode(asmcodes);
+					cout << $$->getCode() <<endl;
 					// cout << "current id of scope : " << id << endl; 
 					 variables_in_scope = symtab.GetAllSymbolsInCurrentScope();
 					// cout << "printing the variables" << endl;
@@ -596,6 +694,38 @@ func_definition : type_specifier ID LPAREN parameter_list RPAREN {id++; symtab.s
 				{
 					//symtab.PrintAllScope();
 
+					//assembly###########################################
+					if($2->getName() == "main")
+					{
+						asmcodes = "\nMAIN PROC\n";
+						asmcodes += "MOV AX, @DATA\nMOV DS, AX\n";
+					}
+					else
+					{
+						asmcodes = $2->getName() + " PROC\n";
+						asmcodes += "PUSH AX\nPUSH BX\nPUSH CX\nPUSH DX\n";
+					}
+
+					asmcodes += $6->getCode();
+
+					if($2->getName() == "main")
+					{
+						asmcodes += "MOV AX, 4CH\n";
+						asmcodes += "INT 21h\n";
+						asmcodes += "MAIN ENDP\n";
+						asmcodes += "END MAIN\n";
+					}
+					else
+					{
+						asmcodes += "POP AX\nPOP BX\nPOP CX\nPOP DX\n";
+						asmcodes += "RET\n";
+						asmcodes += $2->getName() + " ENDP\n";
+					}
+
+
+
+					//####################################################
+
 					cout<< "Line " <<line_count<<":"<< " func_definition : type_specifier ID LPAREN RPAREN compound_statement " << endl << endl;
 
 					code_segment = $1->getType() + " " + $2->getName() + "()"+ $6->getName();
@@ -605,6 +735,10 @@ func_definition : type_specifier ID LPAREN parameter_list RPAREN {id++; symtab.s
 					SymbolInfo *s;
 					s= new SymbolInfo(code_segment, "func_definition");
 					$$=s;
+
+					$$->setCode(asmcodes);
+
+					cout << $$->getCode() <<endl;
 
 					//cout << "current id of scope : " << id << endl; 
 					variables_in_scope = symtab.GetAllSymbolsInCurrentScope();
@@ -633,7 +767,7 @@ func_definition : type_specifier ID LPAREN parameter_list RPAREN {id++; symtab.s
 					}
 					if (return_status == 0)
 					{
-						if ($1->getType() != "void")
+						if ($1->getType() != "void" && $2->getName() != "main")
 						{
 							semantic_error++;
 							fprintf(errorout,"Error at line %d: type_specifier is not of type void, but missing return status", line_count);
@@ -896,7 +1030,8 @@ compound_statement : LCURL statements RCURL
 				   	 SymbolInfo *s;
 				   	 s= new SymbolInfo(statements_name, "compound_statement");
 				   	 $$ = s;
-
+					
+					 $$ = $2;
 
 				   } 
 				   | LCURL RCURL
@@ -920,6 +1055,8 @@ statements : statement
               $$ = s;
               $$->edge.push_back($1); // wrote extra line
 
+			  $$ = $1;
+
 		   }
 		   | statements statement
 		   {
@@ -940,7 +1077,9 @@ statements : statement
 
 		   	 }
 				//assembly#######################
-				$$->setCode($$->getCode()+ $2->getCode());
+				$$ = $1;
+
+				$$->setCode($1->getCode()+ $2->getCode());
 				cout << $$->getCode() <<endl;
 				////////////////////////////////
 		    }               
@@ -980,6 +1119,36 @@ statement : var_declaration
 
           	cout << loop_statement << endl << endl;
 
+			 //assembly$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+
+			$$= $3;
+
+			string condition_check = newLabel();
+			string work = newLabel();
+
+			
+			asmcodes = $$->getCode();
+			asmcodes += condition_check+ ":\n";
+			//asmcodes += "THIS IS $4 code";
+			asmcodes += $4->getCode();
+
+			asmcodes += "MOV AX, "+$4->assemblyName +"\n";
+			asmcodes += "CMP AX, 0\n";
+			asmcodes += "JE "+work+"\n";
+			//asmcodes += "THIS IS $7 code";
+			asmcodes += $7->getCode();
+			//asmcodes += "THIS IS $5 code\n";
+			asmcodes += $5->getCode();
+			asmcodes += "JMP "+condition_check+"\n";
+			asmcodes += work +":\n";
+
+			$$->setCode(asmcodes);
+			
+
+			cout << $$->getCode() <<endl;
+
+			 //############################################### 
+
           }
           | IF LPAREN expression RPAREN statement %prec LOWER_THAN_ELSE
           {
@@ -993,13 +1162,36 @@ statement : var_declaration
 
           	cout << conditional_statement << endl << endl;
 
+			  //assembly############################
+			
+			$$ = $3;
+			string if_is_true = newLabel();
+			string work_after_else = newLabel();
+			
+			asmcodes = $$->getCode();
+			asmcodes += "MOV AX, "+$3->assemblyName+"\n";
+			asmcodes += "CMP AX, 0\n";
+			asmcodes += "JE "+if_is_true+"\n";
+
+			asmcodes += $5->getCode() +"\n";
+			asmcodes += "JMP "+ if_is_true + "\n";
+
+			asmcodes += if_is_true + ":\n";
+	
+
+			$$->setCode(asmcodes);
+			
+			cout << $$->getCode()<<endl;
+
+			  //#####################################
+
 
           }
           | IF LPAREN expression RPAREN statement ELSE statement
           {
           	cout<< "Line " <<line_count<<":"<< " statement : IF LPAREN expression RPAREN statement  ELSE statement" << endl << endl;
 
-          	conditional_statement = "if(" + $3->getName() + ")" + $5->getName() + "else\n\n"  + $7->getName();
+          	conditional_statement = "if(" + $3->getName() + ")" + $5->getName() + "else\n"  + $7->getName();
 
           	SymbolInfo *s;
           	s = new SymbolInfo(conditional_statement, "statement");
@@ -1007,10 +1199,37 @@ statement : var_declaration
 
           	cout << conditional_statement << endl << endl;
 
+			//assembly##############################
+
+			$$ = $3;
+
+			string else_is_true = newLabel();
+			string work_after_else = newLabel();
+			
+			asmcodes = $$->getCode();
+			asmcodes += "MOV AX, "+$3->assemblyName+"\n";
+			asmcodes += "CMP AX, 0\n";
+			asmcodes += "JE "+else_is_true+"\n";
+
+			asmcodes += $5->getCode() +"\n";
+			asmcodes += "JMP "+ work_after_else + "\n";
+
+			asmcodes += else_is_true + ":\n";
+			asmcodes += $7->getCode()+"\n";
+
+			asmcodes += work_after_else +":\n";
+
+			$$->setCode(asmcodes);
+			
+			cout << $$->getCode()<<endl;
+
+
+			//########################################  
+
           }
           | WHILE LPAREN expression RPAREN statement
           {
-          	cout<< "Line " <<line_count<<":"<< " statement : WHILE LPAREN expression RPAREN statement  ELSE statement" << endl << endl;
+          	cout<< "Line " <<line_count<<":"<< " statement : WHILE LPAREN expression RPAREN statement" << endl << endl;
 
           	conditional_statement = "while(" + $3->getName() + ")" + $5->getName();
 
@@ -1019,12 +1238,37 @@ statement : var_declaration
           	$$ = s;
 
           	cout << conditional_statement << endl << endl;
+
+			//assembly#############################
+
+			//cout << $3->getName() << endl;
+			//cout << $3->assemblyName <<endl;
+
+			string condition_check = newLabel();
+			string work = newLabel();
+
+			asmcodes = condition_check+ ":\n";
+			asmcodes += $3->getCode();
+			asmcodes += "MOV AX, "+$3->assemblyName +"\n";
+			asmcodes += "CMP AX, 0\n";
+			asmcodes += "JE "+work+"\n";
+			asmcodes += $5->getCode();
+			asmcodes += "JMP "+condition_check+"\n";
+			asmcodes += work +":\n";
+
+			$$->setCode(asmcodes);
+			
+
+			cout << $$->getCode() <<endl;
+
+
+			//#####################################  
           }
 
           | PRINTLN LPAREN ID RPAREN SEMICOLON
           {
           	cout<< "Line " <<line_count<<":"<< " statement : PRINTLN LPAREN ID RPAREN SEMICOLON" << endl << endl;
-          	cout << "printf(" << $3->getName() << ");"<<endl << endl;
+          	cout << "println(" << $3->getName() << ");"<<endl << endl;
 			  string print_statement;
 			  print_statement = "printf("+$3->getName()+");";
 			
@@ -1041,6 +1285,17 @@ statement : var_declaration
           	x= new SymbolInfo(print_statement, "statement");
           	$$ = x;
 
+			//assembly#########################
+
+			asmcodes = "MOV AX, "+$3->getName()+int2s(symtab.getCurrentScopeID())+"\n";
+			asmcodes += "CALL OUTEDC\n";
+			asmcodes += "CALL NEWLINE\n";
+
+			$$->setCode(asmcodes);
+
+			cout << $$->getCode() <<endl;
+
+			//###############################
 
           }
           | RETURN expression SEMICOLON
@@ -1057,6 +1312,11 @@ statement : var_declaration
           	SymbolInfo *s;
           	s= new SymbolInfo(return_statement, "statement");
           	$$ = s;
+
+			 //assembly#######################
+			 $$->setCode($$->getCode());
+			 cout << $$->getCode() <<endl;
+			 //############################### 
 
           
 
@@ -1086,6 +1346,8 @@ expression_statement : SEMICOLON
                      	cout<< expression_name << endl << endl;
 
 						//cout << $$-> getCode() << endl;
+
+						$$ = $1;
                      }
 
                      ;
@@ -1178,7 +1440,7 @@ type_specifier	: INT
 declaration_list : declaration_list COMMA ID
 				 {
 				 	var_name = $3->getName();
-					variableListInitialize.push_back({var_name + int2s(symtab.getCurrentScopeID()), "0"});
+					variableListInitialize.push_back({var_name + int2s(symtab.getCurrentScopeID()), "normal id"});
 				 	cout<< "Line " <<line_count<<":"<< " declaration_list: declaration_list COMMA ID" << endl << endl;
 				 	for (int i = 0; i < $$->edge.size(); ++i)
 					                	{
@@ -1297,7 +1559,7 @@ declaration_list : declaration_list COMMA ID
                  {	
 					
                  	var_name = $1->getName();
-					variableListInitialize.push_back({var_name + int2s(symtab.getCurrentScopeID()), "0"});
+					variableListInitialize.push_back({var_name + int2s(symtab.getCurrentScopeID()), "normal id"});
 					//cout << symtab.getCurrentScopeID() << endl;
                  	cout<< "Line " <<line_count<<":"<< " declaration_list: ID" << endl << endl;
                  	cout<< var_name << endl << endl;
@@ -1477,7 +1739,8 @@ variable : ID
 		  		$$-> setVarType(temp->getVarType());
 		  	}
 			//assembly#######################################################
-			$$->assemblyName = $$->getName() + int2s(symtab.getCurrentScopeID());
+
+			$$->assemblyName = $$->getName() + int2s(symtab.getCurrentScopeID())+"+"+int2s(size)+"*2";
 			$$->index = size;
 			//#################################################################
 
@@ -1508,29 +1771,23 @@ expression : logic_expression
                 	var_name = $1->getName();
                 }
 				
-
-                if($1->getIdentity() == "array")
+				string var2_name;
+				if($3->getIdentity() == "array")
                 {
-                	code_segment = $1->getName();
-					code_segment += "[" + int2s($1->size) + "]";
-				    code_segment += "=" + $3-> getName();
+                	var2_name = $3->getName();
+					var2_name += "[" + int2s($3->size) + "]";
                 }
                 else
                 {
-                	code_segment = $1->getName();
-
-					if($1->size)
-					{
-						code_segment += "[" + int2s($1->size) + "]";
-					}
-					
-
-					code_segment += "=" + $3-> getName();
+                	var2_name = $3->getName();
                 }
 
 
+                code_segment = var_name +"="+var2_name;
+
+
 				cout << "Line " << line_count << ": expression : variable ASSIGNOP logic_expression " << endl << endl;
-				cout << var_name << "=" << $3->getName() << endl << endl;
+				cout << var_name << "=" << var2_name << endl << endl;
                 
                 
 
@@ -1589,13 +1846,13 @@ expression : logic_expression
 				}
 
 				//assembly part#######################################
-				
+				$$ = $1;
 				string temp_name;
 				temp_name = $1->getName() + int2s(symtab.getCurrentScopeID());
 				//cout<< temp_name << endl;
 
 				asmcodes = $3->getCode()+$1->getCode();
-				asmcodes+= "\nMOV  AX, "+ $3->assemblyName+"\n";
+				asmcodes += "\nMOV  AX, "+ $3->assemblyName+"\n";
 				
 				if($1->index != -1)
 				{
@@ -1662,6 +1919,79 @@ logic_expression : rel_expression
 						cout << "Error at line " << line_count <<":" <<" "<< $2->getName() << " is only possible between integers" <<endl <<endl;
 
 					}
+
+					//assembly###################################
+					$$ = $1;
+					string labellefttrue = newLabel();
+					string labelrighttrue = newLabel();
+					string labelbotharetrue = newLabel();
+					string false_condition = newLabel();
+
+					string temp_name = newTemp();
+					
+					asmcodes = $$->getCode();
+					asmcodes += $3->getCode();
+
+					asmcodes += "\nMOV AX, "+$1->assemblyName+"\n";
+					asmcodes += "\nMOV BX, "+$3->assemblyName+"\n";
+
+					//cout << asmcodes << endl;
+					if($2->getName() == "&&")
+					{
+						asmcodes += "CMP AX, 0\n";
+						asmcodes += "JNE "+labellefttrue + "\n";
+						asmcodes += "JE "+ false_condition + "\n";
+
+						asmcodes += labellefttrue + ":\n";
+						asmcodes += "CMP BX, 0\n";
+						asmcodes += "JNE "+ labelrighttrue + "\n";
+						asmcodes += "JE "+ false_condition + "\n";
+
+						asmcodes +=  false_condition +":\n";
+						asmcodes += "MOV AX, 0\n";
+						asmcodes += "MOV "+temp_name+", AX\n";
+
+						asmcodes += labelrighttrue + ":\n";
+						asmcodes += "MOV AX, 1\n";
+						asmcodes += "MOV "+temp_name+", AX\n";
+						asmcodes += "JMP "+ labelbotharetrue + "\n";
+
+						asmcodes +=  labelbotharetrue + ":\n";	
+					}
+					else if($2->getName() == "||")
+					{
+						asmcodes += "CMP AX, 0\n";
+						asmcodes += "JNE "+labelrighttrue + "\n";
+						asmcodes += "JE "+ labellefttrue + "\n";
+
+						asmcodes += labellefttrue + ":\n";
+						
+						//now left part is zero, so check if right part is zero or not, if this is also zero
+						//then this will go to false_condition
+
+						asmcodes += "CMP BX, 0\n";
+						asmcodes += "JNE "+ labelrighttrue + "\n";
+						asmcodes += "JE "+ false_condition + "\n";
+
+						asmcodes +=  false_condition +":\n";
+						asmcodes += "MOV AX, 0\n";
+						asmcodes += "MOV "+temp_name+", AX\n";
+
+						asmcodes += labelrighttrue + ":\n";
+						asmcodes += "MOV AX, 1\n";
+						asmcodes += "MOV "+temp_name+", AX\n";
+						asmcodes += "JMP "+ labelbotharetrue + "\n";
+
+						asmcodes +=  labelbotharetrue + ":\n";
+					}
+
+					$$-> assemblyName = temp_name;
+					$$->setCode(asmcodes);
+
+					cout << $$->getCode() << endl;
+
+
+					//###########################################
 				 }
 				 ;
 
@@ -1735,7 +2065,7 @@ rel_expression : simple_expression
 					
 					//now we need label
 					//jump is also needed
-
+					$$ = $1;
 					string labelTrue = newLabel();
 					string labelFalse = newLabel();
 					string temp_name = newTemp();
@@ -1755,17 +2085,19 @@ rel_expression : simple_expression
 
 					//ekhon true hoile to oi branch a jump korbe, ar na hole temp a zero rakhte hbe	
 					asmcodes += "\nMOV " + temp_name + ",0\n";
+					asmcodes += "JMP "+ labelFalse +"\n";
 					asmcodes += "\n" + labelTrue + ":\n";
 					asmcodes += "\nMOV " +temp_name+ ", 1\n";
 					asmcodes += "\n" + labelFalse + ":\n";
 
 					$$->assemblyName = temp_name;
 					$$->setCode(asmcodes);
+					
+					cout << $$->getCode()<<endl;
 
+					delete $3;
 
-
-
-					cout << asmcodes <<endl;
+					
 
 
 					//#########################################################
@@ -1841,6 +2173,8 @@ simple_expression : term
 
 					 //assembly##########################
 
+					    $$ = $1;
+
 						asmcodes= $$->getCode()+ $3->getCode();
 
 						cout << asmcodes << endl;
@@ -1864,7 +2198,7 @@ simple_expression : term
 						//$$->setName(temp_name);
 						$$->assemblyName=temp_name;
 
-						//cout << $$->getCode() <<endl;
+						cout << $$->getCode() <<endl;
 
 						delete $3;
 
@@ -1979,6 +2313,9 @@ term : unary_expression
 	 	}
 
 		 //assembly#######################
+
+		    
+			$$ = $1;
 			string temp_name = newTemp();
 
 			asmcodes = $$->getCode() + $3->getCode();
@@ -2197,7 +2534,18 @@ factor :variable
 				}
 			}
 			args.clear();
-*/
+*/	/*		
+		asmcodes = $$->getCode();
+		for(int i = 0; i<x->edge.size(); i++)
+		{
+			asmcodes+="MOV AX, "+args[i]->getName()+int2s(symtab.getCurrentScopeID())+"\n";
+			asmcodes+="MOV "+parameters[i]->getName()+int2s(x->index)+", AX\n";
+		}
+
+		asmcodes += "CALL "+$1->getName()+"\n";
+		$$->setCode(asmcodes);
+
+		cout << $$->getCode() <<endl;*/
 		}
         | LPAREN expression RPAREN
 		{
@@ -2213,6 +2561,7 @@ factor :variable
 	   	 cout << expression_name << endl << endl;
 
 			//assembly#######################
+			$$ = $2;
 			$$->assemblyName = $2->assemblyName;
 			//cout << $$->assemblyName << endl;
 			//	#############################
@@ -2237,6 +2586,7 @@ factor :variable
 
 	   	 cout<< "Line " <<line_count<<":"<< " factor : CONST_FLOAT " << endl << endl;
 	   	 float_name = $1->getName() ;
+			$$->assemblyName = float_name;
 
 	   	 cout << float_name <<endl << endl;
 	   }
@@ -2264,6 +2614,47 @@ factor :variable
 	   	 cout<< "Line " <<line_count<<":"<< " factor : variable DECOP " << endl << endl;
 	   	 cout << variable_name << endl << endl;
 
+			//assembly#########################
+
+		string temp_name = newTemp();
+
+		 if(symtab.Lookup($1->getName()))
+		 {
+			 	variable_name = $1->getName()+ int2s(symtab.getCurrentScopeID());
+
+			 	$$->size = $1->size;
+				$$->setRetType($1->getRetType());
+				$$->setCode($$->getCode());
+				$$->setIdentity($1->getIdentity());
+				asmcodes = $$->getCode();
+
+				$$->assemblyName = variable_name;
+
+				if($$->getIdentity() == "array")
+				{
+					asmcodes+=("MOV AX, "+variable_name+"+"+int2s($1->index)+"*2\n");
+					asmcodes+=("DEC AX\n");
+					asmcodes+=("MOV "+variable_name+"+"+int2s($1->index)+"*2, AX\n");
+					asmcodes +=  "MOV "+temp_name + ",AX\n";
+				}
+				
+				else{
+					asmcodes+=("MOV AX, "+variable_name+"\n");
+					asmcodes+=("DEC AX\n");
+					asmcodes+=("MOV "+variable_name+", AX\n");
+					asmcodes +=  "MOV "+temp_name + ",AX\n";
+				}
+				
+				$$->setCode(asmcodes);
+				$$->assemblyName = temp_name;
+
+				cout << $$->getCode() <<endl;
+
+				
+	
+		 }
+		 //##################################
+
 
 	   } 
 	   | variable INCOP
@@ -2285,9 +2676,52 @@ factor :variable
 	   	 s = new SymbolInfo(variable_name, "factor");
 	   	 $$ = s;
 	   	 $$->setVarType($1->getVarType());
+		
 
 	   	 cout<< "Line " <<line_count<<":"<< " factor : variable INCOP " << endl << endl;
 	   	 cout << variable_name << endl << endl;
+		
+		 //assembly#########################
+
+		string temp_name = newTemp();
+
+		 if(symtab.Lookup($1->getName()))
+		 {
+			 	variable_name = $1->getName()+ int2s(symtab.getCurrentScopeID());
+
+			 	$$->size = $1->size;
+				$$->setRetType($1->getRetType());
+				$$->setCode($$->getCode());
+				$$->setIdentity($1->getIdentity());
+				asmcodes = $$->getCode();
+
+				$$->assemblyName = variable_name;
+
+				if($$->getIdentity() == "array")
+				{
+					asmcodes+=("MOV AX, "+variable_name+"+"+int2s($1->index)+"*2\n");
+					asmcodes+=("INC AX\n");
+					asmcodes+=("MOV "+variable_name+"+"+int2s($1->index)+"*2, AX\n");
+					asmcodes +=  "MOV "+temp_name + ",AX\n";
+				}
+				
+				else{
+					asmcodes+=("MOV AX, "+variable_name+"\n");
+					asmcodes+=("INC AX\n");
+					asmcodes+=("MOV "+variable_name+", AX\n");
+					asmcodes +=  "MOV "+temp_name + ",AX\n";
+				}
+				
+				$$->setCode(asmcodes);
+				$$->assemblyName = temp_name;
+
+				cout << $$->getCode() <<endl;
+
+				
+	
+		 }
+		 //##################################
+		
 	   } 
 	   ;  
 

@@ -167,7 +167,7 @@ COMM_END \*\/
 "," 	{return COMMA;}																							
 		
 ";"	{return SEMICOLON;}		
-"printf" {return PRINTLN;}
+"println" {return PRINTLN;}
 						
 
 		
