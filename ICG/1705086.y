@@ -2633,16 +2633,18 @@ factor :variable
 				if($$->getIdentity() == "array")
 				{
 					asmcodes+=("MOV AX, "+variable_name+"+"+int2s($1->index)+"*2\n");
-					asmcodes+=("DEC AX\n");
-					asmcodes+=("MOV "+variable_name+"+"+int2s($1->index)+"*2, AX\n");
 					asmcodes +=  "MOV "+temp_name + ",AX\n";
+					asmcodes+=("DEC "+variable_name+"+"+int2s($1->index)+"*2\n");
+					//asmcodes+=("MOV "+variable_name+"+"+int2s($1->index)+"*2, AX\n");
+					
 				}
 				
 				else{
 					asmcodes+=("MOV AX, "+variable_name+"\n");
-					asmcodes+=("DEC AX\n");
-					asmcodes+=("MOV "+variable_name+", AX\n");
 					asmcodes +=  "MOV "+temp_name + ",AX\n";
+					asmcodes+=("DEC "+variable_name+"\n");
+					//asmcodes+=("MOV "+variable_name+", AX\n");
+					
 				}
 				
 				$$->setCode(asmcodes);
@@ -2696,7 +2698,7 @@ factor :variable
 				asmcodes = $$->getCode();
 
 				$$->assemblyName = variable_name;
-
+				/*
 				if($$->getIdentity() == "array")
 				{
 					asmcodes+=("MOV AX, "+variable_name+"+"+int2s($1->index)+"*2\n");
@@ -2711,7 +2713,23 @@ factor :variable
 					asmcodes+=("MOV "+variable_name+", AX\n");
 					asmcodes +=  "MOV "+temp_name + ",AX\n";
 				}
+				*/
+				if($$->getIdentity() == "array")
+				{
+					asmcodes+=("MOV AX, "+variable_name+"+"+int2s($1->index)+"*2\n");
+					asmcodes +=  "MOV "+temp_name + ",AX\n";
+					asmcodes+=("INC "+variable_name+"+"+int2s($1->index)+"*2\n");
+					//asmcodes+=("MOV "+variable_name+"+"+int2s($1->index)+"*2, AX\n");
+					
+				}
 				
+				else{
+					asmcodes+=("MOV AX, "+variable_name+"\n");
+					asmcodes +=  "MOV "+temp_name + ",AX\n";
+					asmcodes+=("INC "+variable_name+"\n");
+					//asmcodes+=("MOV "+variable_name+", AX\n");
+					
+				}
 				$$->setCode(asmcodes);
 				$$->assemblyName = temp_name;
 
